@@ -1,0 +1,18 @@
+__pycache__/
+
+*.out
+*.log
+*.ipynb
+*.sh
+*.npz
+
+.ipynb_checkpoints/
+
+# log directory
+predictor/log/
+
+# data directory
+1_data_preprocessing/
+
+# generator (temporary)
+release_generator/
