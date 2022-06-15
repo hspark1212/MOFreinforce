@@ -1,0 +1,3 @@
+torch>=1.11.0+cu113
+torchmetrics>=0.9.0
+sacred>=0.8.2
