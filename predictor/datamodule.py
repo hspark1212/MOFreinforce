@@ -4,11 +4,11 @@ from predictor.dataset import MOFDataset
 
 
 class Datamodule(LightningDataModule):
-    def __init__(self, dataset_dir, batch_size, num_workers=16):
+    def __init__(self, config):
         super().__init__()
-        self.dataset_dir = dataset_dir
-        self.batch_size= batch_size
-        self.num_workers = num_workers
+        self.dataset_dir = config["dataset_dir"]
+        self.batch_size = config["batch_size"]
+        self.num_workers = config["num_workers"]
 
     @property
     def dataset_cls(self):

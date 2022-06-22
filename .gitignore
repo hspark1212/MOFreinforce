@@ -16,3 +16,6 @@ predictor/log/
 
 # generator (temporary)
 release_generator/
+
+# big file size
+data/rmsd*

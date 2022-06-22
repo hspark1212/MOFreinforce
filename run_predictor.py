@@ -3,7 +3,7 @@ import os
 
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
-from pytorch_lightning.plugins import DDPPlugin
+from pytorch_lightning.strategies import DDPStrategy
 
 from predictor.config_predictor import ex
 from predictor.datamodule import Datamodule
@@ -16,18 +16,8 @@ def main(_config):
     pl.seed_everything(_config["seed"])
     exp_name = f"{_config['exp_name']}"
 
-    dm = Datamodule(
-        dataset_dir=_config["dataset_dir"],
-        batch_size=_config["per_gpu_batchsize"],
-        num_workers=_config["num_workers"],
-    )
-    model = Predictor(
-        char_dim=_config["char_dim"],
-        mc_dim=_config["mc_dim"],
-        topo_dim=_config["topo_dim"],
-        embed_dim=_config["embed_dim"],
-        hidden_dim=_config["hidden_dim"],
-    )
+    dm = Datamodule(_config)
+    model = Predictor(_config)
 
     os.makedirs(_config["log_dir"], exist_ok=True)
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
@@ -57,7 +47,7 @@ def main(_config):
         gpus=_config["num_gpus"],
         num_nodes=_config["num_nodes"],
         precision=_config["precision"],
-        strategy="ddp", # DDPPlugin(find_unused_parameters=True)
+        strategy="ddp",
         benchmark=True,
         max_epochs=_config["max_epochs"],
         logger=logger,

@@ -3,19 +3,22 @@ import torch.nn as nn
 import torch.nn.functional as F
 from pytorch_lightning import LightningModule
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-
 from torchmetrics.functional import r2_score
+
+from predictor.module_utils import get_result
 
 
 class Predictor(LightningModule):
-    def __init__(self, char_dim, mc_dim, topo_dim, embed_dim, hidden_dim):
+    def __init__(self, config):
         super().__init__()
+        self.save_hyperparameters()
         # parameter
-        self.char_dim = char_dim
-        self.mc_dim = mc_dim
-        self.topo_dim = topo_dim
-        self.embed_dim = embed_dim
-        self.hidden_dim = hidden_dim
+        self.loss_name = config["loss_name"]
+        self.char_dim = config["char_dim"]
+        self.mc_dim = config["mc_dim"]
+        self.topo_dim = config["topo_dim"]
+        self.embed_dim = config["embed_dim"]
+        self.hidden_dim = config["hidden_dim"]
 
         # model
         # mc
@@ -58,41 +61,40 @@ class Predictor(LightningModule):
         return logit_total
 
     def training_step(self, batch, batch_idx):
+
         pred = self(batch).squeeze(-1)
         target = batch["target"]
 
         loss = F.mse_loss(pred, target)
+        # write log
+        result = get_result(self, pred, target)
+        self.log_dict(result, batch_size=len(target), prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         pred = self(batch).squeeze(-1)
         target = batch["target"]
-
-        loss = F.mse_loss(pred, target)
-        self.log("val_loss", loss, batch_size=len(target))
-
+        # write log
+        result = get_result(self, pred, target)
+        self.log_dict(result, batch_size=len(target), prog_bar=True)
 
     def test_step(self, batch, batch_idx):
-        output = {}
         pred = self(batch).squeeze(-1)
         target = batch["target"]
-
-        loss = F.mse_loss(pred, target)
-        self.log("test_loss", loss, batch_size=len(target))
-        output["pred"] = pred
-        output["target"] = target
-        return output
+        # write log
+        result = get_result(self, pred, target)
+        self.log_dict(result, batch_size=len(target), prog_bar=True)
 
     def test_epoch_end(self, outputs):
-        # calculate r2
-        preds = []
-        targets = []
-        for output in outputs:
-            preds += output["pred"].tolist()
-            targets += output["target"].tolist()
-
-        r2 = r2_score(torch.FloatTensor(preds), torch.FloatTensor(targets))
-        self.log("test/r2_score", r2)
+        if self.loss_name == "regression":
+            # calculate r2
+            preds = []
+            targets = []
+            for output in outputs:
+                preds += output["pred"].tolist()
+                targets += output["target"].tolist()
+            r2 = r2_score(torch.FloatTensor(preds), torch.FloatTensor(targets))
+            self.log("test/r2_score", r2)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters())
