@@ -1,14 +1,20 @@
-import torch.nn.functional as F
-from torchmetrics.functional import r2_score
+class Normalizer(object):
+    """
+    normalize for regression
+    """
+    def __init__(self, mean, std):
+        if mean and std:
+            self._norm_func = lambda tensor: (tensor - mean) / std
+            self._denorm_func = lambda tensor: tensor * std + mean
+        else:
+            self._norm_func = lambda tensor: tensor
+            self._denorm_func = lambda tensor: tensor
 
+        self.mean = mean
+        self.std = std
 
-def get_result(pl_module, pred, target):
-    phase = "train" if pl_module.training else "val"
-    result = {}
-    if pl_module.loss_name == "regression":
-        r2 = r2_score(pred, target)
-        result[f"{phase}_r2"] = r2
-    loss = F.mse_loss(pred, target)
-    result[f"{phase}_loss"] = loss
+    def encode(self, tensor):
+        return self._norm_func(tensor)
 
-    return result
+    def decode(self, tensor):
+        return self._denorm_func(tensor)

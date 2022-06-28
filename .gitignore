@@ -14,8 +14,9 @@ predictor/log/
 # data directory
 1_data_preprocessing/
 
-# generator (temporary)
-release_generator/
+# generator
+generator/save* 
 
 # big file size
 data/rmsd*
+data/vf*

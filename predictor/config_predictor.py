@@ -10,8 +10,9 @@ char_to_idx = json.load(open("data/char_to_idx.json"))
 
 @ex.config
 def config():
-    loss_name = "regression"  # classification
-    seed = 42
+    loss_name = "classification"  # classification
+    threshold = 0.25 # classification for Topology rmsd
+    seed = 0
     precision = 16
     exp_name = "predictor"
     dataset_dir = "data"
@@ -20,16 +21,16 @@ def config():
     char_dim = len(char_to_idx)
     mc_dim = len(mc_to_idx)
     topo_dim = len(topo_to_idx)
-    embed_dim = 100
+    embed_dim = 256
     hidden_dim = 256
 
     # run setting
     batch_size = 512
     per_gpu_batchsize = 256
-    max_epochs = 100
+    max_epochs = 50
     load_path = ""
     log_dir = "predictor/log"
-    num_workers = 16
+    num_workers = 8
     num_nodes = 1
     num_gpus = 2
 
@@ -37,6 +38,10 @@ def config():
     resume_from = None
     val_check_interval = 1.0
     test_only = False
+
+    # normalize (when regression)
+    mean = 0.335  # None
+    std = 0.157  # None
 
 
 @ex.named_config
