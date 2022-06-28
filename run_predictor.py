@@ -3,7 +3,6 @@ import os
 
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
-from pytorch_lightning.strategies import DDPStrategy
 
 from predictor.config_predictor import ex
 from predictor.datamodule import Datamodule
@@ -23,7 +22,7 @@ def main(_config):
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         save_top_k=1,
         verbose=True,
-        monitor="val_loss",
+        monitor="val/loss",
         mode="min",
         save_last=True
     )
@@ -47,8 +46,8 @@ def main(_config):
         gpus=_config["num_gpus"],
         num_nodes=_config["num_nodes"],
         precision=_config["precision"],
+        deterministic=True,
         strategy="ddp",
-        benchmark=True,
         max_epochs=_config["max_epochs"],
         logger=logger,
         accumulate_grad_batches=accumulate_grad_batches,
