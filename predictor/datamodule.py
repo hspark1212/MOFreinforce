@@ -9,6 +9,7 @@ class Datamodule(LightningDataModule):
         self.dataset_dir = config["dataset_dir"]
         self.batch_size = config["batch_size"]
         self.num_workers = config["num_workers"]
+        self.target = config["target"]
 
     @property
     def dataset_cls(self):
@@ -18,18 +19,21 @@ class Datamodule(LightningDataModule):
         self.train_dataset = self.dataset_cls(
             dataset_dir=self.dataset_dir,
             split="train",
+            target=self.target,
         )
 
     def set_val_dataset(self):
         self.val_dataset = self.dataset_cls(
             dataset_dir=self.dataset_dir,
             split="val",
+            target=self.target,
         )
 
     def set_test_dataset(self):
         self.test_dataset = self.dataset_cls(
             dataset_dir=self.dataset_dir,
             split="test",
+            target=self.target,
         )
 
     def setup(self, stage=None):
@@ -46,16 +50,19 @@ class Datamodule(LightningDataModule):
         return DataLoader(self.train_dataset,
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
-                          collate_fn=self.collate)
+                          collate_fn=self.collate,
+                          pin_memory=True)
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset,
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
-                          collate_fn=self.collate)
+                          collate_fn=self.collate,
+                          pin_memory=True)
 
     def test_dataloader(self):
         return DataLoader(self.test_dataset,
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
-                          collate_fn=self.collate)
+                          collate_fn=self.collate,
+                          pin_memory=True)

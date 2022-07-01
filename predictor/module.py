@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from pytorch_lightning import LightningModule
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-from torchmetrics.functional import r2_score
 
 from predictor.objectives import compute_regression, compute_classification
 
@@ -14,12 +12,12 @@ class Predictor(LightningModule):
         self.save_hyperparameters()
         # parameter
         self.loss_name = config["loss_name"]
-        self.char_dim = config["char_dim"]
+        self.vocab_dim = config["vocab_dim"]
         self.mc_dim = config["mc_dim"]
         self.topo_dim = config["topo_dim"]
         self.embed_dim = config["embed_dim"]
         self.hidden_dim = config["hidden_dim"]
-
+        # set objective
         if self.loss_name == "classification":
             self.threshold = config["threshold"]
             self.objective = compute_classification
@@ -31,23 +29,20 @@ class Predictor(LightningModule):
         # mc
         self.embedding_mc = nn.Embedding(self.mc_dim, self.embed_dim)
         self.rc_mc = nn.Sequential(
-            nn.Linear(self.embed_dim, 64),
-            nn.Linear(64, 16),
-            nn.Linear(16, 1),
+            nn.Linear(self.embed_dim, 1),
         )
         # topo
         self.embedding_topo = nn.Embedding(self.topo_dim, self.embed_dim)
         self.rc_topo = nn.Sequential(
-            nn.Linear(self.embed_dim, 64),
-            nn.Linear(64, 16),
-            nn.Linear(16, 1),
+            nn.Linear(self.embed_dim, 1),
         )
         # ol
-        self.embedding_ol = nn.Embedding(self.char_dim, self.embed_dim)
+        self.embedding_ol = nn.Embedding(self.vocab_dim, self.embed_dim)
         self.rnn = nn.RNN(input_size=self.embed_dim, hidden_size=self.hidden_dim, num_layers=1)
         self.rc_ol = nn.Linear(self.hidden_dim, 1)
         # total
         self.rc_total = nn.Linear(3, 1)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, batch):
         mc = batch["mc"]
@@ -70,11 +65,11 @@ class Predictor(LightningModule):
         # total
         logit_total = torch.cat([logit_topo, logit_mc, logit_ol], dim=-1)
         logit_total = self.rc_total(logit_total)
+        logit_total = self.sigmoid(logit_total)
 
         return logit_total
 
     def training_step(self, batch, batch_idx):
-
         pred = self(batch).squeeze(-1)
         target = batch["target"]
 
@@ -95,17 +90,6 @@ class Predictor(LightningModule):
         # write log
         result = self.objective(self, pred, target)
         self.log_dict(result, batch_size=len(target), prog_bar=True)
-
-    def test_epoch_end(self, outputs):
-        if self.loss_name == "regression":
-            # calculate r2
-            preds = []
-            targets = []
-            for output in outputs:
-                preds += output["pred"].tolist()
-                targets += output["target"].tolist()
-            r2 = r2_score(torch.FloatTensor(preds), torch.FloatTensor(targets))
-            self.log("test/r2_score", r2)
 
     def configure_optimizers(self):
         return torch.optim.AdamW(self.parameters(), lr=1e-4, weight_decay=1e-2)
