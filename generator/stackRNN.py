@@ -17,13 +17,18 @@ import torch.nn.functional as F
 import time
 from tqdm import trange
 from generator.smiles_enumerator import SmilesEnumerator
+import selfies as sf
 
 from torchmetrics.functional import accuracy
-import json
+
+from rdkit import Chem
+from rdkit import RDLogger
+RDLogger.DisableLog('rdApp.*')
+
 
 
 class StackAugmentedRNN(nn.Module):
-    def __init__(self, char_to_idx, input_size, hidden_size, output_size, layer_type='GRU',
+    def __init__(self, vocab_to_idx, input_size, hidden_size, output_size, layer_type='GRU',
                  n_layers=1, is_bidirectional=False, has_stack=False,
                  stack_width=None, stack_depth=None, use_cuda=None,
                  optimizer_instance=torch.optim.Adadelta, lr=0.01):
@@ -62,7 +67,7 @@ class StackAugmentedRNN(nn.Module):
         """
         super(StackAugmentedRNN, self).__init__()
 
-        self.char_to_idx = char_to_idx
+        self.vocab_to_idx = vocab_to_idx
         self.layer_type = layer_type
         self.is_bidirectional = is_bidirectional
         if self.is_bidirectional:
@@ -306,6 +311,9 @@ class StackAugmentedRNN(nn.Module):
         loss = 0
         outputs = []
         for c in range(len(inp)):
+            if c == 0: # first token is [*]
+                outputs.append(torch.tensor([self.vocab_to_idx["[*]"]]).cuda())
+                continue
             output, hidden, stack = self(inp[c], hidden, stack)
             loss += self.criterion(output, target[c].unsqueeze(0))
             outputs.append(output.argmax(-1))
@@ -314,9 +322,10 @@ class StackAugmentedRNN(nn.Module):
         self.optimizer.step()
         outputs = torch.concat(outputs)
         acc = accuracy(outputs, target)
+
         return loss.item() / len(inp), acc.item()
 
-    def evaluate(self, prime_str='<', end_token='>', predict_len=100):
+    def evaluate(self, prime_str='[SOS]', end_token='[EOS]', predict_len=100):
         """
         Generates new string from the model distribution.
         Parameters
@@ -346,9 +355,9 @@ class StackAugmentedRNN(nn.Module):
             stack = self.init_stack()
         else:
             stack = None
-        prime_input = torch.LongTensor([self.char_to_idx[prime_str]]).cuda()
-        # prime_input = data.char_tensor(prime_str)
-        new_sample = prime_str
+        # prime_input = torch.LongTensor([self.vocab_to_idx[prime_str]]).cuda()
+        prime_input = torch.LongTensor([self.vocab_to_idx["[*]"]]).cuda()
+        new_sample = prime_str + "[*]"
         """
         # Use priming string to "build up" hidden state
         for p in range(len(prime_str)-1):
@@ -364,17 +373,17 @@ class StackAugmentedRNN(nn.Module):
             top_i = torch.multinomial(probs.view(-1), 1)[0].cpu().numpy()
 
             # Add predicted character to string and use as next input
-            predicted_char = list(self.char_to_idx.keys())[top_i]
-            # predicted_char = data.all_characters[top_i]
+            predicted_char = list(self.vocab_to_idx.keys())[top_i]
+
             new_sample += predicted_char
-            inp = torch.LongTensor([self.char_to_idx[predicted_char]]).cuda()
-            # inp = data.char_tensor(predicted_char)
+            inp = torch.LongTensor([self.vocab_to_idx[predicted_char]]).cuda()
+
             if predicted_char == end_token:
                 break
 
         return new_sample
 
-    def fit(self, dataset, n_iterations, save_dir="generator", all_losses=[], all_acces=[], print_every=100):
+    def fit(self, dataset, n_iterations, save_dir="generator", all_losses=[], print_every=100):
         """
         This methods fits the parameters of the model. Training is performed to
         minimize the cross-entropy loss when predicting the next character
@@ -401,7 +410,6 @@ class StackAugmentedRNN(nn.Module):
         all_losses: list
             list that stores the values of the loss function (learning curve)
         """
-        start = time.time()
         loss_avg = 0
         acc_avg = 0
 
@@ -414,6 +422,7 @@ class StackAugmentedRNN(nn.Module):
             inp = raw[:-1]
             target = raw[1:]
 
+
             # inp, target = dataset.random_training_set(smiles_augmentation)
             loss, acc = self.train_step(inp, target)
             loss_avg += loss
@@ -421,10 +430,25 @@ class StackAugmentedRNN(nn.Module):
 
             if epoch % print_every == 0:
                 print(f"epoch : {epoch} | loss_avg : {loss_avg / print_every} | acc_avg : {acc_avg / print_every}")
-                print(self.evaluate(prime_str='<',
+                print(self.evaluate(prime_str='[SOS]',
                                     predict_len=100), '\n')
                 loss_avg = 0
                 acc_avg = 0
+
+                c = 0
+                for i in range(100):
+                    sf_ = self.evaluate()[5:-5]
+                    try:
+                        new_smi = sf.decoder(sf_)
+                        m = Chem.MolFromSmiles(new_smi)
+                        if m:
+                            c += 1
+                        print(new_smi)
+                    except Exception as e:
+                        print(e, sf_)
+                        pass
+
+                print(f"number of valid smiles : {c}")
                 self.save_model(f"{save_dir}/generator_{epoch}.ch")
 
         return all_losses

@@ -11,8 +11,9 @@ def compute_regression(pl_module, pred, target):
     r2 = r2_score(pred, target)
 
     # save result
-    result[f"{phase}_loss"] = loss
-    result[f"{phase}_r2"] = r2
+    result[f"{phase}/loss"] = loss
+    result[f"{phase}/r2"] = r2
+
     return result
 
 def compute_classification(pl_module, pred, target):

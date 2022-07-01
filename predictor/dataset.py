@@ -6,9 +6,9 @@ from torch.nn.utils.rnn import pad_sequence
 
 
 class MOFDataset(Dataset):
-    def __init__(self, dataset_dir, split):
+    def __init__(self, dataset_dir, split, target):
         assert split in ["train", "test", "val"]
-        path_dict_mof = Path(dataset_dir, f"rmsd_dict_mof_{split}.json")
+        path_dict_mof = Path(dataset_dir, f"{target}_dict_mof_{split}.json")
         print(f"read file {path_dict_mof}")
         self.dict_mof = json.load(open(path_dict_mof, "r"))
         self.mof_name = list(self.dict_mof.keys())
@@ -34,5 +34,4 @@ class MOFDataset(Dataset):
         dict_batch_ol_pad = pad_sequence(dict_batch_ol, batch_first=True, padding_value=0)
         dict_batch["ol_pad"] = dict_batch_ol_pad
         dict_batch["ol_len"] = [len(ol) for ol in dict_batch["ol"]]
-
         return dict_batch
