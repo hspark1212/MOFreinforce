@@ -11,7 +11,7 @@ import codecs
 from SmilesPE.tokenizer import SPE_Tokenizer
 
 # 0. character embedding
-ol_to_smiles = json.load(open("data/v2/ol_to_smiles.json"))
+ol_to_smiles = json.load(open("data/v3/ol_to_smiles.json"))
 # char_to_idx = json.load(open("data/char_to_idx.json"))
 
 # 1. bpe
@@ -20,8 +20,8 @@ ol_to_smiles = json.load(open("data/v2/ol_to_smiles.json"))
 # spe = SPE_Tokenizer(pretrained_tokenizer)
 
 # 2. selfies
-ol_to_selfies = json.load(open("data/v2/ol_to_selfies.json"))
-vocab_to_idx = json.load(open("data/v2/vocab_to_idx.json"))
+ol_to_selfies = json.load(open("data/v3/ol_to_selfies.json"))
+vocab_to_idx = json.load(open("data/v3/vocab_to_idx.json"))
 
 
 class OLDataset(Dataset):
@@ -85,9 +85,9 @@ def main():
     my_generator = my_generator.cuda()
 
 
-    save_dir = "generator/saved_model_selfies/"
+    save_dir = "generator/saved_model_selfies_2/"
     os.makedirs(save_dir, exist_ok=True)
-    my_generator.load_model(save_dir+"generator_110000.ch")
+    my_generator.load_model("generator/saved_model_selfies/generator_970000.ch")
     my_generator.fit(dataset, n_iterations=1000000, print_every=10000, save_dir=save_dir)
 
 
