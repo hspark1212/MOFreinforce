@@ -8,14 +8,23 @@ __pycache__/
 
 .ipynb_checkpoints/
 
+
+# figure
+figure/
+
 # log directory
 predictor/logs/
+predictor/result_transformer
 
 # data directory
 1_data_preprocessing/
 
 # generator
 generator/save* 
+
+# reinforce
+reinforce/logs/
+
 
 # big file size
 data/

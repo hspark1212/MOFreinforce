@@ -2,22 +2,53 @@ import torch
 import json
 from pathlib import Path
 from torch.utils.data import Dataset
-from torch.nn.utils.rnn import pad_sequence
 
 
 class MOFDataset(Dataset):
-    def __init__(self, dataset_dir, split, target):
+    def __init__(self,
+                 dataset_dir,
+                 split,
+                 tasks=None,
+                 ):
         assert split in ["train", "test", "val"]
-        path_dict_mof = Path(dataset_dir, f"{target}_dict_mof_{split}.json")
-        print(f"read file {path_dict_mof}")
+
+        # load dict_mof
+        path_dict_mof = Path(dataset_dir, f"dict_mof.json")
+        print(f"read file : {path_dict_mof}")
         self.dict_mof = json.load(open(path_dict_mof, "r"))
-        self.mof_name = list(self.dict_mof.keys())
+
+        # load tasks
+        if tasks is None:
+            tasks = []
+        print(f"tasks : {tasks}")
+        for task in tasks:
+            if task in ["trc", "vfr"]:
+                path_dict_target = Path(dataset_dir, f"{task}_{split}.json")
+                print(f"read file : {path_dict_target}")
+                self.dict_target = json.load(open(path_dict_target, "r"))
+            else:
+                assert Exception, print("check loss_names in config_predictor.py")
+
+
+        self.mof_name = list(self.dict_target.keys())
+
 
     def __len__(self):
-        return len(self.dict_mof)
+        return len(self.mof_name)
 
     def __getitem__(self, idx):
-        return self.dict_mof[self.mof_name[idx]]
+        ret = dict()
+        mof_name = self.mof_name[idx]
+
+        ret.update(
+            {
+                "mof_name": mof_name,
+                "target": self.dict_target[mof_name],
+            }
+
+        )
+        ret.update(self.dict_mof[mof_name])
+        return ret
 
     @staticmethod
     def collate(batch):
@@ -25,13 +56,12 @@ class MOFDataset(Dataset):
         dict_batch = {k: [dic[k] if k in dic else None for dic in batch] for k in keys}
         # target
         dict_batch["target"] = torch.FloatTensor(dict_batch["target"])
-        # mc
+        # mc (idx)
         dict_batch["mc"] = torch.LongTensor(dict_batch["mc"])
-        # topo
+        # topo (idx)
         dict_batch["topo"] = torch.LongTensor(dict_batch["topo"])
-        # ol (make pad)
-        dict_batch_ol = [torch.LongTensor(ol) for ol in dict_batch["ol"]]
-        dict_batch_ol_pad = pad_sequence(dict_batch_ol, batch_first=True, padding_value=0)
-        dict_batch["ol_pad"] = dict_batch_ol_pad
-        dict_batch["ol_len"] = [len(ol) for ol in dict_batch["ol"]]
+        # ol (selfies)
+        dict_batch["ol"] = torch.LongTensor(
+            [ol + [0] * (100 - len(ol)) if len(ol) < 100 else ol[:100] for ol in dict_batch["ol"]]
+        )
         return dict_batch
