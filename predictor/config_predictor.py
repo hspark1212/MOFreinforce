@@ -3,14 +3,12 @@ from sacred import Experiment
 
 ex = Experiment("predictor")
 
-mc_to_idx = json.load(open("data/v3/mc_to_idx.json"))
-topo_to_idx = json.load(open("data/v3/topo_to_idx.json"))
-vocab_to_idx = json.load(open("data/v3/vocab_to_idx.json")) # vocab for selfies
+mc_to_idx = json.load(open("data/v4/mc_to_idx.json"))
+topo_to_idx = json.load(open("data/v4/topo_to_idx.json"))
+vocab_to_idx = json.load(open("data/v4/vocab_to_idx.json")) # vocab for selfies
 
 def _loss_names(d):
     ret = {
-        "trc": 0, # Topology Rmsd Regression
-        "vfr": 0, # Void Fraction Regression
         "classification": 0,  # classification
         "regression": 0,  # regression
     }
@@ -22,11 +20,11 @@ def config():
     seed = 0
     exp_name = "predictor"
 
-    dataset_dir = "data/v3"
+    dataset_dir = "###"
     loss_names = _loss_names({})
 
-
     # model setting
+    max_len = 128 # cls + mc + topo + ol_len
     vocab_dim = len(vocab_to_idx)
     mc_dim = len(mc_to_idx)
     topo_dim = len(topo_to_idx)
@@ -51,6 +49,7 @@ def config():
     # downstream
     downstream = ""
     n_classes = 0
+    threshold_classification = None
 
     # Optimizer Setting
     optim_type = "adamw"  # adamw, adam, sgd (momentum=0.9)
@@ -78,22 +77,27 @@ def env_ifactor():
 
 
 @ex.named_config
-def task_trc():
-    exp_name = "task_trc"
-    log_dir = "predictor/result_transformer"
+def regression_qkh():
+    exp_name = "regression_qkh"
+    dataset_dir = "data/v4/dataset_predictor/qkh"
 
     # trainer
     max_epochs = 50
-    batch_size = 512
+    batch_size = 64
     per_gpu_batchsize = 16
 
     # model
-    loss_names = _loss_names({"trc": 1})
+    loss_names = _loss_names({"regression": 1})
+
+    # normalize (when regression)
+    mean = -19.418
+    std = -9.162
+
 
 @ex.named_config
-def task_vfr():
-    exp_name = "task_vfr"
-    log_dir = "predictor/result_transformer"
+def regression_vf():
+    exp_name = "regression_vf"
+    dataset_dir = "data/v4/dataset_predictor/vf"
 
     # trainer
     max_epochs = 50
@@ -101,5 +105,20 @@ def task_vfr():
     per_gpu_batchsize = 16
 
     # model
-    loss_names = _loss_names({"vfr": 1})
+    loss_names = _loss_names({"regression": 1})
+
+@ex.named_config
+def classification_rmsd():
+    exp_name = "classification_rmsd"
+    dataset_dir = "data/v4/dataset_predictor/rmsd"
+
+    # trainer
+    max_epochs = 50
+    batch_size = 128
+    per_gpu_batchsize = 16
+
+    # model
+    loss_names = _loss_names({"classification": 1})
+    n_classes = 2
+    threshold_classification = 0.25
 

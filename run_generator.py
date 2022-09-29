@@ -1,95 +1,74 @@
-import json
+import copy
 import os
 
-import torch
-from torch.utils.data import Dataset
-from generator.stackRNN import StackAugmentedRNN
-from generator.smiles_enumerator import SmilesEnumerator
-import selfies as sf
+import pytorch_lightning as pl
+from pytorch_lightning.strategies.ddp import DDPStrategy
+from pytorch_lightning.loggers import TensorBoardLogger
 
-import codecs
-from SmilesPE.tokenizer import SPE_Tokenizer
-
-# 0. character embedding
-ol_to_smiles = json.load(open("data/v3/ol_to_smiles.json"))
-# char_to_idx = json.load(open("data/char_to_idx.json"))
-
-# 1. bpe
-# vocab_to_idx = json.load(open("data/vocab_to_idx.json"))
-# pretrained_tokenizer = codecs.open("data/tokenizer/tokenized_smiles.txt")
-# spe = SPE_Tokenizer(pretrained_tokenizer)
-
-# 2. selfies
-ol_to_selfies = json.load(open("data/v3/ol_to_selfies.json"))
-vocab_to_idx = json.load(open("data/v3/vocab_to_idx.json"))
+from generator.config_generator import ex
+from generator.datamodule import GeneratorDatamodule
+from generator.module import Generator
 
 
-class OLDataset(Dataset):
-    """
-    Dataset for organic linker
-    """
+@ex.automain
+def main(_config):
+    _config = copy.deepcopy(_config)
+    pl.seed_everything(_config["seed"])
 
-    def __init__(self, ol_to_smiles, ol_to_selfies=None, augment=False):
-        if ol_to_selfies is not None:
-            self.ol_name, self.selfies = zip(*ol_to_selfies.items())
-        self.ol_name, self.smiles = zip(*ol_to_smiles.items())
+    dm = GeneratorDatamodule(_config)
 
-        self.smiles_enumerator = SmilesEnumerator()
-        self.augment = augment
+    model = Generator(_config)
 
-    def __len__(self):
-        return len(self.smiles)
+    exp_name = f"{_config['exp_name']}"
 
-    def __getitem__(self, idx):
-        """
-        # 0. character embedding
-        if self.augment:
-            smiles = self.smiles_enumerator.randomize_smiles(self.smiles[idx])
-        else:
-            smiles = self.smiles[idx]
-        inp = [char_to_idx["<"]] + [char_to_idx[s] for s in smiles] + [char_to_idx[">"]]
-        """
+    os.makedirs(_config["log_dir"], exist_ok=True)
+    checkpoint_callback = pl.callbacks.ModelCheckpoint(
+        save_top_k=1,
+        verbose=True,
+        monitor="val/the_metric",
+        mode="max",
+        save_last=True,
+    )
 
-        """
-        # 1. bpe
-        tokenized_smiles = spe.tokenize(smiles).split()
-        inp = [char_to_idx["<"]] + [vocab_to_idx[s] for s in tokenized_smiles] + [char_to_idx[">"]]
-        """
-        # 2. selfies
-        sf_ = self.selfies[idx]
+    logger = pl.loggers.TensorBoardLogger(
+        _config["log_dir"],
+        name=f'{exp_name}_seed{_config["seed"]}_from_{_config["load_path"].split("/")[-1][:-5]}',
+    )
 
-        encoded = sf.selfies_to_encoding(selfies=sf_, vocab_stoi=vocab_to_idx, enc_type="label")
-        inp = [1] + encoded + [2]
+    lr_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
+    callbacks = [checkpoint_callback, lr_callback]
 
-        return torch.LongTensor(inp)
+    num_devices = _config["num_devices"]
+    if isinstance(num_devices, list):
+        num_devices = len(num_devices)
 
+    # gradient accumulation
+    accumulate_grad_batches = _config["batch_size"] // (
+            _config["per_gpu_batchsize"] * num_devices * _config["num_nodes"]
+    )
 
-def main():
-    use_cuda = torch.cuda.is_available()
-    dataset = OLDataset(ol_to_smiles, ol_to_selfies=ol_to_selfies, augment=False)
-    hidden_size = 1500
-    stack_width = 1500
-    stack_depth = 200
-    layer_type = 'GRU'
-    lr = 0.001
-    optimizer_instance = torch.optim.Adadelta
+    trainer = pl.Trainer(
+        accelerator="gpu",
+        devices=num_devices,
+        num_nodes=_config["num_nodes"],
+        precision=_config["precision"],
+        deterministic=True,
+        strategy=DDPStrategy(find_unused_parameters=True),
+        max_epochs=_config["max_epochs"],
+        callbacks=callbacks,
+        logger=logger,
+        accumulate_grad_batches=accumulate_grad_batches,
+        log_every_n_steps=10,
+        resume_from_checkpoint=_config["resume_from"],
+        val_check_interval=_config["val_check_interval"],
+        gradient_clip_val=_config["gradient_clip_val"],
+        # profiler="simple",
+    )
 
-    my_generator = StackAugmentedRNN(vocab_to_idx=vocab_to_idx,
-                                     input_size=len(vocab_to_idx), hidden_size=hidden_size,
-                                     output_size=len(vocab_to_idx), layer_type=layer_type,
-                                     n_layers=1, is_bidirectional=False, has_stack=True,
-                                     stack_width=stack_width, stack_depth=stack_depth,
-                                     use_cuda=use_cuda,
-                                     optimizer_instance=optimizer_instance, lr=lr)
-
-    my_generator = my_generator.cuda()
-
-
-    save_dir = "generator/saved_model_selfies_2/"
-    os.makedirs(save_dir, exist_ok=True)
-    my_generator.load_model("generator/saved_model_selfies/generator_970000.ch")
-    my_generator.fit(dataset, n_iterations=1000000, print_every=10000, save_dir=save_dir)
+    if not _config["test_only"]:
+        trainer.fit(model, datamodule=dm)
+        # trainer.test(model, datamodule=dm)
+    else:
+        trainer.test(model, datamodule=dm)
 
 
-if __name__ == "__main__":
-    main()

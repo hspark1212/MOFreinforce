@@ -65,11 +65,5 @@ def main(_config):
     if not _config["test_only"]:
         trainer.fit(model, datamodule=dm)
         trainer.test(model, datamodule=dm)
-        assert False, "first loop Finish"
     else:
         trainer.test(model, datamodule=dm)
-
-
-
-if __name__ == '__main__':
-    main()
