@@ -20,11 +20,16 @@ predictor/result_transformer
 1_data_preprocessing/
 
 # generator
-generator/save* 
+generator/logs/ 
 
 # reinforce
 reinforce/logs/
+reinforce/old_logs/
 
+# library
+libs/
 
 # big file size
 data/
+assets/
+results/

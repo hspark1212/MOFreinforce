@@ -14,33 +14,6 @@ class Pooler(nn.Module):
         pooled_output = self.activation(pooled_output)
         return pooled_output
 
-class TRCHead(nn.Module):
-    """
-    head for Topology Rmsd Classification (binary classification)
-    """
-
-    def __init__(self, hid_dim):
-        super().__init__()
-        self.fc = nn.Linear(hid_dim, 1)
-
-    def forward(self, x):
-        x = self.fc(x)
-        return x
-
-
-class VFRHead(nn.Module):
-    """
-    head for Void Fraction Regression
-    """
-
-    def __init__(self, hid_dim):
-        super().__init__()
-        self.fc = nn.Linear(hid_dim, 1)
-
-    def forward(self, x):
-        x = self.fc(x)
-        return x
-
 
 class RegressionHead(nn.Module):
     """

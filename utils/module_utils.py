@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 from transformers import AdamW
 from transformers import (
     get_polynomial_decay_schedule_with_warmup,
@@ -6,7 +7,19 @@ from transformers import (
     get_constant_schedule,
     get_constant_schedule_with_warmup,
 )
-from predictor.gadgets import Scalar, Accuracy
+from utils.gadgets import Scalar, Accuracy
+
+
+def init_weights(module):
+    if isinstance(module, (nn.Linear, nn.Embedding)):
+        module.weight.data.normal_(mean=0.0, std=0.02)
+    elif isinstance(module, nn.LayerNorm):
+        module.bias.data.zero_()
+        module.weight.data.fill_(1.0)
+
+    if isinstance(module, nn.Linear) and module.bias is not None:
+        module.bias.data.zero_()
+
 
 def set_metrics(pl_module):
     for split in ["train", "val"]:
@@ -17,14 +30,15 @@ def set_metrics(pl_module):
                 setattr(pl_module, f"{split}_{k}_loss", Scalar())
                 setattr(pl_module, f"{split}_{k}_mae", Scalar())
                 setattr(pl_module, f"{split}_{k}_r2", Scalar())
-            elif k == "trc":
-                setattr(pl_module, f"{split}_{k}_accuracy", Accuracy())
+            elif k == "generator":
                 setattr(pl_module, f"{split}_{k}_loss", Scalar())
-                setattr(pl_module, f"{split}_{k}_precision", Scalar())
-                setattr(pl_module, f"{split}_{k}_recall", Scalar())
+                setattr(pl_module, f"{split}_{k}_acc_topo", Scalar())
+                setattr(pl_module, f"{split}_{k}_acc_mc", Scalar())
+                setattr(pl_module, f"{split}_{k}_acc_ol", Scalar())
             else:
                 setattr(pl_module, f"{split}_{k}_accuracy", Accuracy())
                 setattr(pl_module, f"{split}_{k}_loss", Scalar())
+
 
 def set_task(pl_module):
     pl_module.current_tasks = [
@@ -57,6 +71,20 @@ def epoch_wrapup(pl_module):
             getattr(pl_module, f"{phase}_{loss_name}_mae").reset()
 
             value = -value
+        elif loss_name == "generator":
+            acc_topo = getattr(pl_module, f"{phase}_{loss_name}_acc_topo").compute()
+            pl_module.log(f"{loss_name}/{phase}/acc_topo", acc_topo)
+            getattr(pl_module, f"{phase}_{loss_name}_acc_topo").reset()
+
+            acc_mc = getattr(pl_module, f"{phase}_{loss_name}_acc_mc").compute()
+            pl_module.log(f"{loss_name}/{phase}/acc_mc", acc_mc)
+            getattr(pl_module, f"{phase}_{loss_name}_acc_mc").reset()
+
+            acc_ol = getattr(pl_module, f"{phase}_{loss_name}_acc_ol").compute()
+            pl_module.log(f"{loss_name}/{phase}/acc_ol", acc_ol)
+            getattr(pl_module, f"{phase}_{loss_name}_acc_ol").reset()
+            value = acc_topo + acc_mc + acc_ol
+
         else:
             value = getattr(pl_module, f"{phase}_{loss_name}_accuracy").compute()
             pl_module.log(f"{loss_name}/{phase}/accuracy_epoch", value)
@@ -138,7 +166,7 @@ def set_schedule(pl_module):
 
     if optim_type == "adamw":
         optimizer = AdamW(optimizer_grouped_parameters, lr=lr, eps=1e-8, betas=(0.9, 0.98)
-        )
+                          )
     elif optim_type == "adam":
         optimizer = torch.optim.Adam(optimizer_grouped_parameters, lr=lr)
     elif optim_type == "sgd":
@@ -149,7 +177,7 @@ def set_schedule(pl_module):
                 len(pl_module.trainer.datamodule.train_dataloader())
                 * pl_module.trainer.max_epochs
                 // pl_module.trainer.accumulate_grad_batches
-                // (pl_module.trainer.num_gpus * pl_module.trainer.num_nodes)
+                // (pl_module.trainer.num_devices * pl_module.trainer.num_nodes)
         )
     else:
         max_steps = pl_module.trainer.max_steps
@@ -192,6 +220,7 @@ def set_schedule(pl_module):
         [sched],
     )
 
+
 class Normalizer(object):
     """
     normalize for regression
@@ -199,7 +228,7 @@ class Normalizer(object):
 
     def __init__(self, mean, std):
         if mean and std:
-            self._norm_func = lambda tensor : (tensor - mean) / std
+            self._norm_func = lambda tensor: (tensor - mean) / std
             self._denorm_func = lambda tensor: tensor * std + mean
         else:
             self._norm_func = lambda tensor: tensor
@@ -213,5 +242,3 @@ class Normalizer(object):
 
     def decode(self, tensor):
         return self._denorm_func(tensor)
-
-

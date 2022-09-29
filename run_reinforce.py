@@ -1,79 +1,97 @@
+import copy
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-import json
-from predictor.config_predictor import config, _loss_names
-from predictor.module import Predictor
 
-import torch
-from generator.stackRNN import StackAugmentedRNN
-
-from reinforce.reinforce import Reinforce
-from reinforce.reward_functions import get_reward_trc, get_reward_vfr
+import pytorch_lightning as pl
+from pytorch_lightning.strategies.ddp import DDPStrategy
+from pytorch_lightning.loggers import TensorBoardLogger
 
 from reinforce.config_reinforce import ex
 
+from predictor.config_predictor import config as predictor_config
+from predictor.config_predictor import _loss_names
+from predictor.module import Predictor
+
+from generator.config_generator import config as generator_config
+from generator.datamodule import GeneratorDatamodule
+from generator.module import Generator
+
+from reinforce.module import Reinforce
+
 @ex.automain
 def main(_config):
+    # 1. load predictor
+    pred_config = predictor_config()
+    pred_config["test_only"] = True
+    pred_config["loss_names"] = _loss_names({"regression": 1})
+    pred_config["load_path"] = _config["predictor_load_path"]
+    pred_config["mean"] = _config["mean"]
+    pred_config["std"] = _config["std"]
 
-    vocab_to_idx = json.load(open("data/v3/vocab_to_idx.json"))
-    mc_to_idx = json.load(open("data/v3/mc_to_idx.json"))
-    topo_to_idx = json.load(open("data/v3/topo_to_idx.json"))
+    predictor = Predictor(pred_config)
+    predictor.eval()
 
-    # load predictor for rsmd
-    rmsd_config = config()
-    rmsd_config["loss_names"] = _loss_names({"trc" : 1})
-    rmsd_config["load_path"] = _config["load_path_rmsd"]
-    trc_predictor = Predictor(rmsd_config)
-    trc_predictor = trc_predictor.cuda()
+    # 2. load generator
+    gen_config = generator_config()
+    gen_config["load_path"] = _config["generator_load_path"]
+    gen_config["batch_size"] = _config["batch_size"]
+    gen_config["dataset_dir"] = _config["dataset_dir"]
 
-    # load predictor for target
-    target_config = config()
-    target_config["loss_names"] = _loss_names({"vfr" : 1})
-    target_config["load_path"] = _config["load_path_target"]
-    vfr_predictor = Predictor(target_config)
-    vfr_predictor = vfr_predictor.cuda()
+    generator = Generator(gen_config)
+    dm = GeneratorDatamodule(gen_config)
 
+    # 3. set reinforce
+    _config = copy.deepcopy(_config)
+    pl.seed_everything(_config["seed"])
 
-    # load generator
-    use_cuda = torch.cuda.is_available()
-    hidden_size = 1500
-    stack_width = 1500
-    stack_depth = 200
-    layer_type = 'GRU'
-    lr = 0.001
-    optimizer_instance = torch.optim.Adadelta
-    generator = StackAugmentedRNN(vocab_to_idx=vocab_to_idx,
-                                  input_size=len(vocab_to_idx), hidden_size=hidden_size,
-                                  output_size=len(vocab_to_idx), layer_type=layer_type,
-                                  n_layers=1, is_bidirectional=False, has_stack=True,
-                                  stack_width=stack_width, stack_depth=stack_depth,
-                                  use_cuda=use_cuda,
-                                  optimizer_instance=optimizer_instance, lr=lr)
-    generator.load_model(_config["load_path_generator"])
+    model = Reinforce(generator, predictor, _config)
 
-    # REINFORCE algorithm
-    reinforce = Reinforce(generator=generator,
-                          rmsd_predictor=trc_predictor,
-                          target_predictor=vfr_predictor,
-                          get_reward_rmsd=get_reward_trc,
-                          get_reward_target=get_reward_vfr,
-                          vocab_to_idx=vocab_to_idx,
-                          mc_to_idx=mc_to_idx,
-                          topo_to_idx=topo_to_idx,
-                          emb_dim=_config["emb_dim"],
-                          hid_dim=_config["hid_dim"],
-                          config=_config,
-                          )
+    exp_name = f"{_config['exp_name']}"
+    os.makedirs(_config["log_dir"], exist_ok=True)
+    checkpoint_callback = pl.callbacks.ModelCheckpoint(
+        save_top_k=1,
+        verbose=True,
+        monitor="val/reward",
+        mode="max",
+        save_last=True,
+    )
 
-    # training
-    reinforce.train(n_batch=_config["n_batch"],
-                    gamma=_config["gamma"],
-                    n_iters=_config["n_iters"],
-                    n_print=_config["n_print"],
-                    topo_idx=_config["topo_idx"],
-                    )
+    logger = pl.loggers.TensorBoardLogger(
 
-if __name__ == "__main__":
-    main()
+        _config["log_dir"],
+        name=f'{exp_name}_seed{_config["seed"]}_from_{_config["load_path"].split("/")[-1][:-5]}',
+    )
+    lr_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
+    callbacks = [checkpoint_callback, lr_callback]
+
+    num_devices = _config["num_devices"]
+    if isinstance(num_devices, list):
+        num_devices = len(num_devices)
+
+    trainer = pl.Trainer(
+        accelerator="gpu",
+        devices=num_devices,
+        num_nodes=_config["num_nodes"],
+        precision=_config["precision"],
+        deterministic=True,
+        strategy=DDPStrategy(find_unused_parameters=True),
+        max_epochs=_config["max_epochs"],
+        callbacks=callbacks,
+        logger=logger,
+        accumulate_grad_batches=_config["accumulate_grad_batches"],
+        log_every_n_steps=10,
+        resume_from_checkpoint=_config["resume_from"],
+        limit_train_batches=_config["limit_train_batches"],
+        limit_val_batches=_config["limit_val_batches"],
+        num_sanity_val_steps=_config["limit_val_batches"],
+        val_check_interval=_config["val_check_interval"],
+        gradient_clip_val=_config["gradient_clip_val"],
+        # profiler="simple",
+    )
+
+    if not _config["test_only"]:
+        trainer.fit(model, datamodule=dm)
+        # trainer.test(model, datamodule=dm)
+    else:
+        trainer.test(model, datamodule=dm)
 
 
