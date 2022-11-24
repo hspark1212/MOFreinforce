@@ -60,6 +60,17 @@ def config():
 def v0():
     exp_name = "v0"
 
+"""
+v1 : remove mc in the input
+"""
+@ex.named_config
+def v1():
+    exp_name = "v1"
+
+@ex.named_config
+def test():
+    exp_name = "test"
+
 @ex.named_config
 def v0_test():
     exp_name = "v0_test"

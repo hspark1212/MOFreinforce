@@ -23,21 +23,18 @@ class Datamodule(LightningDataModule):
         self.train_dataset = self.dataset_cls(
             dataset_dir=self.dataset_dir,
             split="train",
-            tasks=self.tasks,
         )
 
     def set_val_dataset(self):
         self.val_dataset = self.dataset_cls(
             dataset_dir=self.dataset_dir,
             split="val",
-            tasks=self.tasks,
         )
 
     def set_test_dataset(self):
         self.test_dataset = self.dataset_cls(
             dataset_dir=self.dataset_dir,
             split="test",
-            tasks=self.tasks,
         )
 
     def setup(self, stage: Optional[str] = None):

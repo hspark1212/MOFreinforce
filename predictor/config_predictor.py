@@ -5,11 +5,10 @@ ex = Experiment("predictor")
 
 mc_to_idx = json.load(open("data/v4/mc_to_idx.json"))
 topo_to_idx = json.load(open("data/v4/topo_to_idx.json"))
-vocab_to_idx = json.load(open("data/v4/vocab_to_idx.json")) # vocab for selfies
+vocab_to_idx = json.load(open("data/v4/vocab_to_idx.json"))  # vocab for selfies
 
 def _loss_names(d):
     ret = {
-        "classification": 0,  # classification
         "regression": 0,  # regression
     }
     ret.update(d)
@@ -21,7 +20,7 @@ def config():
     exp_name = "predictor"
 
     dataset_dir = "###"
-    loss_names = _loss_names({})
+    loss_names = _loss_names({"regression": 1})
 
     # model setting
     max_len = 128 # cls + mc + topo + ol_len
@@ -31,7 +30,7 @@ def config():
 
     # transformer setting
     hid_dim = 256
-    num_heads = 4 # hid_dim / 64
+    num_heads = 4  # hid_dim / 64
     num_layers = 4
     mlp_ratio = 4
     drop_rate = 0.1
@@ -41,7 +40,7 @@ def config():
     per_gpu_batchsize = 64
     load_path = ""
     log_dir = "predictor/logs"
-    num_workers = 8 # recommend num_gpus * 4
+    num_workers = 8  # recommend num_gpus * 4
     num_nodes = 1
     num_gpus = 2
     precision = 16
@@ -75,6 +74,16 @@ def config():
 def env_ifactor():
     pass
 
+@ex.named_config
+def regression_vf():
+    exp_name = "regression_vf"
+    dataset_dir = "data/v4/dataset_predictor/vf"
+
+    # trainer
+    max_epochs = 50
+    batch_size = 128
+    per_gpu_batchsize = 16
+
 
 @ex.named_config
 def regression_qkh():
@@ -86,39 +95,39 @@ def regression_qkh():
     batch_size = 64
     per_gpu_batchsize = 16
 
-    # model
-    loss_names = _loss_names({"regression": 1})
+    # normalize (when regression)
+    mean = -19.408
+    std = -9.172
+
+
+@ex.named_config
+def regression_selectivity():
+    exp_name = "regression_selectivity"
+    dataset_dir = "data/v4/dataset_predictor/selectivity"
+
+    # trainer
+    max_epochs = 50
+    batch_size = 128
+    per_gpu_batchsize = 16
 
     # normalize (when regression)
-    mean = -19.418
-    std = -9.162
+    mean = 1.872
+    std = 1.922
 
 
+"""
+Round 2
+"""
 @ex.named_config
-def regression_vf():
-    exp_name = "regression_vf"
-    dataset_dir = "data/v4/dataset_predictor/vf"
+def regression_qkh_round2():
+    exp_name = "regression_qkh_round2"
+    dataset_dir = "data/v4/dataset_predictor/qkh/round2/"
 
     # trainer
     max_epochs = 50
-    batch_size = 128
+    batch_size = 64
     per_gpu_batchsize = 16
 
-    # model
-    loss_names = _loss_names({"regression": 1})
-
-@ex.named_config
-def classification_rmsd():
-    exp_name = "classification_rmsd"
-    dataset_dir = "data/v4/dataset_predictor/rmsd"
-
-    # trainer
-    max_epochs = 50
-    batch_size = 128
-    per_gpu_batchsize = 16
-
-    # model
-    loss_names = _loss_names({"classification": 1})
-    n_classes = 2
-    threshold_classification = 0.25
-
+    # normalize (when regression)
+    mean = -19.886
+    std = 9.811

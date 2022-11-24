@@ -59,12 +59,6 @@ class Predictor(LightningModule):
             self.std = config["std"]
             self.normalizer = module_utils.Normalizer(self.mean, self.std)
 
-        # classification
-        if self.hparams.config["loss_names"]["classification"] > 0:
-            n_classes = config["n_classes"]
-            self.classification_head = heads.ClassificationHead(config["hid_dim"], n_classes)
-            self.classification_head.apply(module_utils.init_weights)
-
         module_utils.set_metrics(self)
         module_utils.set_task(self)
         # ===================== load downstream (test_only) ======================
@@ -127,10 +121,6 @@ class Predictor(LightningModule):
         # regression
         if "regression" in self.current_tasks:
             ret.update(objectives.compute_regression(self, batch, self.normalizer))
-
-        # classification
-        if "classification" in self.current_tasks:
-            ret.update(objectives.compute_classification(self, batch))
 
         return ret
 

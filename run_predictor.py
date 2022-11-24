@@ -9,6 +9,7 @@ from predictor.config_predictor import ex
 from predictor.datamodule import Datamodule
 from predictor.module import Predictor
 
+
 @ex.automain
 def main(_config):
     _config = copy.deepcopy(_config)

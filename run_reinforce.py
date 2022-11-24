@@ -20,15 +20,18 @@ from reinforce.module import Reinforce
 @ex.automain
 def main(_config):
     # 1. load predictor
-    pred_config = predictor_config()
-    pred_config["test_only"] = True
-    pred_config["loss_names"] = _loss_names({"regression": 1})
-    pred_config["load_path"] = _config["predictor_load_path"]
-    pred_config["mean"] = _config["mean"]
-    pred_config["std"] = _config["std"]
+    predictors = []
+    for i in range(len(_config["predictor_load_path"])):
+        pred_config = predictor_config()
+        pred_config["test_only"] = True
+        pred_config["loss_names"] = _loss_names({"regression": 1})
+        pred_config["load_path"] = _config["predictor_load_path"][i]
+        pred_config["mean"] = _config["mean"][i]
+        pred_config["std"] = _config["std"][i]
 
-    predictor = Predictor(pred_config)
-    predictor.eval()
+        predictor = Predictor(pred_config)
+        predictor.eval()
+        predictors.append(predictor)
 
     # 2. load generator
     gen_config = generator_config()
@@ -43,14 +46,14 @@ def main(_config):
     _config = copy.deepcopy(_config)
     pl.seed_everything(_config["seed"])
 
-    model = Reinforce(generator, predictor, _config)
+    model = Reinforce(generator, predictors, _config)
 
     exp_name = f"{_config['exp_name']}"
     os.makedirs(_config["log_dir"], exist_ok=True)
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         save_top_k=1,
         verbose=True,
-        monitor="val/reward",
+        monitor="val/total_reward",
         mode="max",
         save_last=True,
     )
@@ -63,13 +66,9 @@ def main(_config):
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
     callbacks = [checkpoint_callback, lr_callback]
 
-    num_devices = _config["num_devices"]
-    if isinstance(num_devices, list):
-        num_devices = len(num_devices)
-
     trainer = pl.Trainer(
         accelerator="gpu",
-        devices=num_devices,
+        devices=_config["devices"],
         num_nodes=_config["num_nodes"],
         precision=_config["precision"],
         deterministic=True,
@@ -90,7 +89,7 @@ def main(_config):
 
     if not _config["test_only"]:
         trainer.fit(model, datamodule=dm)
-        # trainer.test(model, datamodule=dm)
+        trainer.test(model, datamodule=dm)
     else:
         trainer.test(model, datamodule=dm)
 

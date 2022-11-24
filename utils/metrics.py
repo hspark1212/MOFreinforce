@@ -1,70 +1,76 @@
 import json
-import random
 import torch
-import numpy as np
 from rdkit import Chem
-from rdkit.Chem.Draw import MolToImage
 from rdkit import RDLogger
-from tqdm import tqdm
 
 import selfies as sf
+
 RDLogger.DisableLog('rdApp.*')
 
 topo_to_cn = json.load(open("assets/final_topo_cn.json"))
 mc_to_cn = json.load(open("assets/mc_cn.json"))
 
-def metrics_generator(pl_module, src, split="val", num_images=20, early_stop=None):
-    """
-    metrics for generator
-    :param pl_module: generator
-    :param src: encoded_input
-    :param split: val or test
-    :param num_images: how many generated organic linkers are tracked in the tensorboard logger.
-    :param early_stop: float, early stopping with the accuracy of scaffold
-    :return:
-    """
-    m_valid = 0
-    m_conn_match = 0
-    list_ol = []
-    list_topo_mc = []
-    m_scaffold = 0
-    list_frags = []
-    total_count = len(src)
 
-    for i in tqdm(range(len(src))):
-        src_input = src[i].unsqueeze(0)
-        with torch.no_grad():
-            output = pl_module.evaluate(src_input)
+class Metrics():
+    def __init__(self, vocab_to_idx, idx_to_vocab):
+        # generator
+        self.num_fail = []
+        self.conn_match = []
+        self.scaffold = []
+        # collect
+        self.input_frags = []
+        self.gen_ol = []
+        self.gen_topo = []
+        self.gen_mc = []
+        # reinforce
+        self.rewards = []
+        self.preds = []
+        # vocab
+        self.topo_to_cn = topo_to_cn
+        self.mc_to_cn = mc_to_cn
+        self.vocab_to_idx = vocab_to_idx
+        self.idx_to_vocab = idx_to_vocab
 
-        topo_cn = topo_to_cn[output["topo"]]
+    def update(self, output, src, rewards=None, preds=None):
+        """
+        (1) metric for connection matching
+        (2) metric for unique organic linker
+        (3) metric for unique topology and metal cluster
+        (4) metric for scaffold
+        (5) (optional) rewards
+        (6) (optional) preds
+
+        :param output:
+        :return:
+        """
+        topo_cn = topo_to_cn.get(output["topo"], [0])  # if topo is [PAD] then topo_cn = [0]
         if len(topo_cn) == 1:
             topo_cn.append(2)
-        mc_cn = mc_to_cn[output["mc"]]
-        ol_cn = output["ol_idx"].count(pl_module.vocab_to_idx["[*]"])
-        gen_sm = output["gen_sm"]
+        mc_cn = mc_to_cn.get(output["mc"], -1)  # if mc is [PAD] then mc_cn = -1
+        ol_cn = output["ol_idx"].count(self.vocab_to_idx["[*]"])
 
         # (1) metric for connection matching
-        if set(topo_cn) == set([mc_cn, ol_cn]):
-            m_conn_match += 1
+        if set(topo_cn) == {mc_cn, ol_cn}:
+            self.conn_match.append(1)
+        else:
+            self.conn_match.append(0)
 
-        # (2) metric for valid smiles
-        # (3) metric for uniqueness ol
-        if gen_sm is None:
-            continue
-        m_valid += 1
-        list_ol.append(gen_sm)
-        # (4) metric for uniqueness ol
-        list_topo_mc.append( "_".join([output["topo"], output["mc"]]))
+        # (2) metric for unique organic linker
+        # (3) metric for unique topology and metal cluster
+        gen_sm = output["gen_sm"]
+        self.gen_ol.append(gen_sm)
+        self.gen_topo.append(output["topo"])
+        self.gen_mc.append(output["mc"])
 
-        # (5) metric for accuracy (BRICS)
+        # (4) metric for scaffold
         # get frags
-        frags = [pl_module.idx_to_vocab[idx.item()] for idx in src_input.squeeze(0)[3:]]
+        frags = [self.idx_to_vocab[idx.item()] for idx in src.squeeze(0)[3:]]
         frags = frags[:frags.index("[EOS]")]
         frags = "".join(frags)
 
         frags_sm = [sf.decoder(f) for f in frags.split(".")]
-        list_frags.append(frags_sm)
-        ## replace * with H
+        self.input_frags.append(frags_sm)
+        # replace * with H
         du, hy = Chem.MolFromSmiles('*'), Chem.MolFromSmiles('[H]')
         try:
             m = Chem.MolFromSmiles(gen_sm)
@@ -75,37 +81,16 @@ def metrics_generator(pl_module, src, split="val", num_images=20, early_stop=Non
                 if not check_gen_sm.HasSubstructMatch(Chem.MolFromSmiles(sm)):
                     check_ = False
             if check_:
-                m_scaffold += 1
+                self.scaffold.append(1)
+            else:
+                self.scaffold.append(0)
         except:
             pass
 
-    # add metrics to log
-    pl_module.logger.experiment.add_scalar(f"{split}/conn_match", m_conn_match / total_count, pl_module.global_step)
-    pl_module.logger.experiment.add_scalar(f"{split}/valid_smiles", m_valid / total_count, pl_module.global_step)
-    pl_module.logger.experiment.add_scalar(f"{split}/unique_ol", len(set(list_ol)) / total_count, pl_module.global_step)
-    pl_module.logger.experiment.add_scalar(f"{split}/unique_topo_mc", len(set(list_topo_mc)) / total_count, pl_module.global_step)
-    pl_module.logger.experiment.add_scalar(f"{split}/scaffold", m_scaffold / total_count, pl_module.global_step)
+        # (5) metric for reward
+        self.rewards.append(rewards)
+        self.preds.append(preds)
 
-    assert len(list_ol) == len(list_frags)
-    for i in range(num_images):
-        idx = random.Random(i).choice(range(len(list_ol)))
-        ol = list_ol[idx]
-        frags = list_frags[idx]
-        imgs = []
-        for s in [ol] + frags:
-            m = Chem.MolFromSmiles(s)
-            if not m:
-                continue
-            img = MolToImage(m)
-            img = np.array(img)
-            img = torch.tensor(img)
-            imgs.append(img)
-        imgs = np.stack(imgs, axis=0)
-        pl_module.logger.experiment.add_image(f"{split}/{i}", imgs, pl_module.global_step, dataformats="NHWC")
-        if early_stop is not None:
-            # callbacks with scaffold
-            print(m_scaffold / total_count)
-            if m_scaffold / total_count < early_stop:
-                raise Exception(f"accuracy of scaffold < {early_stop}")
-
-
+    @staticmethod
+    def get_mean(list_):
+        return torch.mean(torch.Tensor(list_))

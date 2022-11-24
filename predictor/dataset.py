@@ -8,7 +8,6 @@ class MOFDataset(Dataset):
     def __init__(self,
                  dataset_dir,
                  split,
-                 tasks=None,
                  ):
         assert split in ["train", "test", "val"]
 

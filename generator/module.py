@@ -1,17 +1,20 @@
-import os
 import json
-import torch
+import random
+from tqdm import tqdm
 
+import numpy as np
 import selfies as sf
 from rdkit import Chem
 
+import torch
 from pytorch_lightning import LightningModule
 
 from generator import objectives
 from generator.transformer import Transformer
 from utils import module_utils
 
-from utils.metrics import metrics_generator
+from utils.metrics import Metrics
+from rdkit.Chem.Draw import MolToImage
 
 
 class Generator(LightningModule):
@@ -50,7 +53,6 @@ class Generator(LightningModule):
         )
 
         module_utils.set_metrics(self)
-        module_utils.set_task(self)
         # ===================== load model ======================
 
         if config["load_path"] != "":
@@ -142,16 +144,11 @@ class Generator(LightningModule):
 
     def forward(self, batch):
         ret = dict()
-        if len(self.current_tasks) == 0:
-            ret.update(self.infer(batch))
-
-        if "generator" in self.current_tasks:
-            ret.update(objectives.compute_generator(self, batch))
+        ret.update(objectives.compute_loss(self, batch))
 
         return ret
 
     def training_step(self, batch, batch_idx):
-        module_utils.set_task(self)
         ret = self(batch)
         total_loss = sum([v for k, v in ret.items() if "loss" in k])
 
@@ -161,20 +158,70 @@ class Generator(LightningModule):
         module_utils.epoch_wrapup(self)
 
     def validation_step(self, batch, batch_idx):
-        module_utils.set_task(self)
         output = self(batch)
 
     def validation_epoch_end(self, output):
         module_utils.epoch_wrapup(self)
 
     def test_step(self, batch, batch_idx):
-        module_utils.set_task(self)
         return batch
 
     def test_epoch_end(self, batches):
+        split = "test"
         module_utils.epoch_wrapup(self)
-        src = torch.concat([b["encoded_input"] for b in batches], dim=0)
-        metrics_generator(self, src, "test")
+
+        metrics = Metrics(self.vocab_to_idx, self.idx_to_vocab)
+        list_src = torch.concat([b["encoded_input"] for b in batches], dim=0)
+
+        for src in tqdm(list_src):
+            out = self.evaluate(src.unsqueeze(0))
+
+            if out["gen_sm"] is None:
+                metrics.num_fail.append(1)
+                continue
+            else:
+                metrics.num_fail.append(0)
+
+            metrics.update(out, src)
+
+        self.log(f"{split}/conn_match", metrics.get_mean(metrics.conn_match))
+        self.log(f"{split}/unique_ol", len(set(metrics.gen_ol)))
+        self.log(f"{split}/unique_topo_mc", len(set(zip(metrics.gen_topo, metrics.gen_mc))))
+        self.log(f"{split}/scaffold", metrics.get_mean(metrics.scaffold))
+        self.log(f"{split}/num_fail", metrics.get_mean(metrics.num_fail))
+
+
+        # add image to log
+        # gen_ol with frags (32 images)
+        for i in range(32):
+            idx = random.Random(i).choice(range(len(metrics.gen_ol)))
+            ol = metrics.gen_ol[idx]
+            frags = metrics.input_frags[idx]
+            imgs = []
+            for s in [ol] + frags:
+                m = Chem.MolFromSmiles(s)
+                if not m:
+                    continue
+                img = MolToImage(m)
+                img = np.array(img)
+                img = torch.tensor(img)
+                imgs.append(img)
+            imgs = np.stack(imgs, axis=0)
+            self.logger.experiment.add_image(f"{split}/{i}", imgs, self.global_step, dataformats="NHWC")
+
+        # total gen_ol
+        imgs = []
+        for i, m in enumerate(metrics.gen_ol[:32]):
+            try:
+                m = Chem.MolFromSmiles(m)
+                img = MolToImage(m)
+                img = np.array(img)
+                img = torch.tensor(img)
+                imgs.append(img)
+            except Exception as e:
+                print(e)
+        imgs = np.stack(imgs, axis=0)
+        self.logger.experiment.add_image(f"{split}/gen_ol/", imgs, self.global_step, dataformats="NHWC")
 
     def configure_optimizers(self):
         return module_utils.set_schedule(self)

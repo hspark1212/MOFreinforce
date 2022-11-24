@@ -67,7 +67,7 @@ def main(_config):
 
     if not _config["test_only"]:
         trainer.fit(model, datamodule=dm)
-        # trainer.test(model, datamodule=dm)
+        trainer.test(model, datamodule=dm)
     else:
         trainer.test(model, datamodule=dm)
 

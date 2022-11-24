@@ -1,12 +1,13 @@
 import torch.nn.functional as F
 from torchmetrics.functional import accuracy
 
-def compute_generator(pl_module, batch):
+
+def compute_loss(pl_module, batch):
     infer = pl_module.infer(batch)
 
-    tgt_label = infer["tgt_label"] # [B, seq_len]
+    tgt_label = infer["tgt_label"]  # [B, seq_len]
 
-    batch_size, _, vocab_dim  = infer["output_ol"].shape
+    batch_size, _, vocab_dim = infer["output_ol"].shape
 
     # loss topo
     logit_topo = infer["output_topo"]

@@ -20,10 +20,10 @@ predictor/result_transformer
 1_data_preprocessing/
 
 # generator
-generator/logs/ 
+generator/logs/
 
 # reinforce
-reinforce/logs/
+reinforce/logs*/
 reinforce/old_logs/
 
 # library
