@@ -36,6 +36,7 @@ _data/
 assets/
 results/
 test/
+logs/
 
 # setuptools
 build/
