@@ -13,7 +13,7 @@ from rdkit.Chem.Draw import MolToImage
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-import selfies as sf
+import libs.selfies as sf
 
 class Reinforce(object):
     def __init__(self,

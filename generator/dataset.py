@@ -2,7 +2,7 @@ import json
 import numpy as np
 from pathlib import Path
 import pandas as pd
-import selfies as sf
+import libs.selfies as sf
 
 import torch
 from torch.utils.data import Dataset

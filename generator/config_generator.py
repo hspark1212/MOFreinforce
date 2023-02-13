@@ -3,8 +3,8 @@ from sacred import Experiment
 
 ex = Experiment("generator")
 
-mc_to_idx = json.load(open("data/v4/mc_to_idx.json"))
-topo_to_idx = json.load(open("data/v4/topo_to_idx.json"))
+mc_to_idx = json.load(open("data/mc_to_idx.json"))
+topo_to_idx = json.load(open("data/topo_to_idx.json"))
 
 @ex.config
 def config():
@@ -14,15 +14,15 @@ def config():
     loss_names = {"generator" : 1}
 
     # datamodule
-    dataset_dir = "data/v4/dataset_generator"
+    dataset_dir = "data/dataset_generator"
     batch_size = 256
     num_workers = 8 # recommend num_gpus * 4
     max_len = 128
 
     # transformer
-    path_topo_to_idx = "data/v4/topo_to_idx.json"
-    path_mc_to_idx = "data/v4/mc_to_idx.json"
-    path_vocab = "data/v4/vocab_to_idx.json"
+    path_topo_to_idx = "data/topo_to_idx.json"
+    path_mc_to_idx = "data/mc_to_idx.json"
+    path_vocab = "data/vocab_to_idx.json"
     # input_dim = len(vocab_to_idx)
     # output_dim = len(vocab_to_idx)
     hid_dim = 256
@@ -60,13 +60,6 @@ def config():
 def v0():
     exp_name = "v0"
 
-"""
-v1 : remove mc in the input
-"""
-@ex.named_config
-def v1():
-    exp_name = "v1"
-
 @ex.named_config
 def test():
     exp_name = "test"
@@ -74,7 +67,7 @@ def test():
 @ex.named_config
 def v0_test():
     exp_name = "v0_test"
-    load_path = "generator/logs/v0_seed0_from_/version_0/checkpoints/last.ckpt"
+    load_path = "model/generator.ckpt"
 
     test_only=True
     num_devices=1

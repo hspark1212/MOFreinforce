@@ -1,8 +1,6 @@
 import os
 import json
 import copy
-import random
-
 import torch
 from tqdm import tqdm
 
@@ -15,10 +13,10 @@ from rdkit import Chem
 from rdkit.Chem.Draw import MolToImage
 
 import numpy as np
-import selfies as sf
+import libs.selfies as sf
 
-topo_to_cn = json.load(open("assets/final_topo_cn.json"))
-mc_to_cn = json.load(open("assets/mc_cn.json"))
+topo_to_cn = json.load(open("data/final_topo_cn.json"))
+mc_to_cn = json.load(open("data/mc_cn.json"))
 
 
 class Reinforce(LightningModule):
@@ -90,7 +88,7 @@ class Reinforce(LightningModule):
             with torch.no_grad():
                 freeze_output = self.freeze_agent.transformer.decoder(
                     trg_tensor, enc_src, trg_mask, src_mask)  # [B=1, seq_len, vocab_dim]
-                if torch.rand(1)[0] < self.ratio_exploit:  # and self.training: ### beta
+                if torch.rand(1)[0] < self.ratio_exploit:
                     output = freeze_output
 
             if "output_ol" in output.keys():
@@ -296,7 +294,16 @@ class Reinforce(LightningModule):
                 rewards = [0] * len(rewards)
         return rewards, preds
 
-    def update_metrics(self, list_src, metrics, split):
+    def update_metrics(self, list_src, metrics, split, num_log_mols=16):
+        """
+
+        :param list_src: list of source
+        :param metrics: dictionary of metrics
+        :param split: str, split
+        :param num_log_mols: number of molecules for log, which will be saved in tensorboard
+        :return:
+        :rtype:
+        """
         for src in tqdm(list_src):
             out = self(src.unsqueeze(0))
 
@@ -324,11 +331,9 @@ class Reinforce(LightningModule):
         self.log(f"{split}/num_fail", metrics.get_mean(metrics.num_fail))
 
         # add image to log
-        # gen_ol with frags (32 images)
-        for i in range(32):
-            idx = random.Random(i).choice(range(len(metrics.gen_ol)))
-            ol = metrics.gen_ol[idx]
-            frags = metrics.input_frags[idx]
+        for i in range(num_log_mols):
+            ol = metrics.gen_ol[i]
+            frags = metrics.input_frags[i]
             imgs = []
             for s in [ol] + frags:
                 m = Chem.MolFromSmiles(s)
@@ -343,7 +348,7 @@ class Reinforce(LightningModule):
 
         # total gen_ol
         imgs = []
-        for i, m in enumerate(metrics.gen_ol[:32]):
+        for i, m in enumerate(metrics.gen_ol[:num_log_mols]):
             try:
                 m = Chem.MolFromSmiles(m)
                 img = MolToImage(m)
@@ -354,4 +359,5 @@ class Reinforce(LightningModule):
                 print(e)
         imgs = np.stack(imgs, axis=0)
         self.logger.experiment.add_image(f"{split}/gen_ol/", imgs, self.global_step, dataformats="NHWC")
+
         return metrics

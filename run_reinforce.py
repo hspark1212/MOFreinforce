@@ -84,7 +84,6 @@ def main(_config):
         num_sanity_val_steps=_config["limit_val_batches"],
         val_check_interval=_config["val_check_interval"],
         gradient_clip_val=_config["gradient_clip_val"],
-        # profiler="simple",
     )
 
     if not _config["test_only"]:

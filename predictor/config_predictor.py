@@ -3,9 +3,9 @@ from sacred import Experiment
 
 ex = Experiment("predictor")
 
-mc_to_idx = json.load(open("data/v4/mc_to_idx.json"))
-topo_to_idx = json.load(open("data/v4/topo_to_idx.json"))
-vocab_to_idx = json.load(open("data/v4/vocab_to_idx.json"))  # vocab for selfies
+mc_to_idx = json.load(open("data/mc_to_idx.json"))
+topo_to_idx = json.load(open("data/topo_to_idx.json"))
+vocab_to_idx = json.load(open("data/vocab_to_idx.json"))  # vocab for selfies
 
 def _loss_names(d):
     ret = {
@@ -77,7 +77,7 @@ def env_ifactor():
 @ex.named_config
 def regression_vf():
     exp_name = "regression_vf"
-    dataset_dir = "data/v4/dataset_predictor/vf"
+    dataset_dir = "data/dataset_predictor/vf"
 
     # trainer
     max_epochs = 50
@@ -88,7 +88,7 @@ def regression_vf():
 @ex.named_config
 def regression_qkh():
     exp_name = "regression_qkh"
-    dataset_dir = "data/v4/dataset_predictor/qkh"
+    dataset_dir = "data/dataset_predictor/qkh"
 
     # trainer
     max_epochs = 50
@@ -103,7 +103,7 @@ def regression_qkh():
 @ex.named_config
 def regression_selectivity():
     exp_name = "regression_selectivity"
-    dataset_dir = "data/v4/dataset_predictor/selectivity"
+    dataset_dir = "data/dataset_predictor/selectivity"
 
     # trainer
     max_epochs = 50
@@ -121,7 +121,7 @@ Round 2
 @ex.named_config
 def regression_qkh_round2():
     exp_name = "regression_qkh_round2"
-    dataset_dir = "data/v4/dataset_predictor/qkh/round2/"
+    dataset_dir = "data/dataset_predictor/qkh/round2/"
 
     # trainer
     max_epochs = 50

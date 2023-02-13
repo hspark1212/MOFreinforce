@@ -30,6 +30,9 @@ reinforce/old_logs/
 libs/
 
 # big file size
+model/
 data/
+_data/
 assets/
 results/
+test/

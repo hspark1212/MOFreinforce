@@ -10,7 +10,7 @@ def config():
     gpu_idx = 0
 
     # load predictor
-    predictor_load_path = ["predictor/logs/regression_qkh_seed0_from_/version_0/checkpoints/best.ckpt"]
+    predictor_load_path = ["model/predictor_qkh.ckpt"]
     mean = [None]
     std = [None]
 
@@ -25,7 +25,7 @@ def config():
     reward_max = [1.]  # if you want to normalize by max reward.
 
     # load generator
-    dataset_dir = "data/v4/dataset_generator"
+    dataset_dir = "data/dataset_generator"
     generator_load_path = "generator/logs/generator_seed0_from_/version_0/checkpoints/last.ckpt"
 
     # REINFORCE
@@ -42,7 +42,7 @@ def config():
     ratio_mask_mc = 0.  # ratio for masking mc of input_src
 
     # Trainer
-    max_epochs = 100
+    max_epochs = 20
     batch_size = 16
     accumulate_grad_batches = 2
     devices = 1
@@ -64,8 +64,91 @@ def config():
 def test():
     exp_name = "test"
 
+
 """
-discrete reward
+Q_kH
+"""
+
+
+@ex.named_config
+def v0_scratch():
+    exp_name = "v0_scratch"
+    test_only = True
+
+    # reward
+    reward_max = [-50.]
+
+    # predictor
+    predictor_load_path = ["model/predictor_qkh.ckpt"]
+    mean = [-19.408]
+    std = [-9.172]
+
+
+@ex.named_config
+def v0_qkh():
+    """
+    omit mc in the input
+    """
+    exp_name = "v0_qkh"
+    max_epochs = 20
+
+    # reward
+    reward_max = [-50.]
+
+    # reinforce
+    early_stop = 0.5  # early_stop when the accuracy of scaffold is less than it.
+    ratio_exploit = .6  # ratio for exploitation
+    ratio_mask_mc = .5  # ratio for masking mc of input_src
+
+    # predictor
+    predictor_load_path = ["model/predictor_qkh.ckpt"]
+    mean = [-19.408]
+    std = [-9.172]
+
+
+"""
+Selectivity (v1)
+"""
+
+
+@ex.named_config
+def v1_scratch():
+    exp_name = "v1_scratch"
+    test_only = True
+
+    # reward
+    reward_max = [10.]
+
+    # predictor
+    predictor_load_path = ["model/predictor_selectivity.ckpt"]
+    mean = [1.871]
+    std = [1.922]
+
+
+@ex.named_config
+def v1_selectivity():
+    """
+    omit mc in the input
+    """
+    exp_name = "v1_selectivity"
+    max_epochs = 20
+
+    # reward
+    reward_max = [10.]
+
+    # reinforce
+    early_stop = 0.5  # early_stop when the accuracy of scaffold is less than it.
+    ratio_exploit = .6  # ratio for exploitation
+    ratio_mask_mc = .5  # ratio for masking mc of input_src
+
+    # predictor
+    predictor_load_path = ["model/predictor_selectivity.ckpt"]
+    mean = [1.871]
+    std = [1.922]
+
+
+"""
+v2 multi objective
 """
 
 
@@ -82,7 +165,7 @@ def v2_multi_scratch():
     # predictor
     predictor_load_path = [
         "predictor/logs/regression_qkh_seed0_from_/version_0/checkpoints/best.ckpt",
-        "predictor/logs/regression_selectivity_seed0_from_/version_0/checkpoints/best.ckpt"
+        "model/predictor_selectivity.ckpt"
     ]
     mean = [-19.408, 1.871]
     std = [-9.172, 1.922]
@@ -106,7 +189,7 @@ def v2_multi():
     # predictor
     predictor_load_path = [
         "predictor/logs/regression_qkh_seed0_from_/version_0/checkpoints/best.ckpt",
-        "predictor/logs/regression_selectivity_seed0_from_/version_0/checkpoints/best.ckpt"
+        "model/predictor_selectivity.ckpt"
     ]
     mean = [-19.408, 1.871]
     std = [-9.172, 1.922]
@@ -130,136 +213,10 @@ def v2_multi_discrete():
     # predictor
     predictor_load_path = [
         "predictor/logs/regression_qkh_seed0_from_/version_0/checkpoints/best.ckpt",
-        "predictor/logs/regression_selectivity_seed0_from_/version_0/checkpoints/best.ckpt"
+        "model/predictor_selectivity.ckpt"
     ]
     mean = [-19.408, 1.871]
     std = [-9.172, 1.922]
-
-
-@ex.named_config
-def v2_multi_random_input():
-    exp_name = "v2_multi_random_input"
-    max_epochs = 20
-    log_dir = "reinforce/logs"
-
-    # reward
-    threshold = True
-    reward_max = [-40., 2.]
-
-    # reinforce
-    early_stop = 0.  # early_stop when the accuracy of scaffold is less than it.
-    ratio_exploit = .6  # ratio for exploitation
-    ratio_mask_mc = .5  # ratio for masking mc of input_src
-
-    # predictor
-    predictor_load_path = [
-        "predictor/logs/regression_qkh_seed0_from_/version_0/checkpoints/best.ckpt",
-        "predictor/logs/regression_selectivity_seed0_from_/version_0/checkpoints/best.ckpt"
-    ]
-    mean = [-19.408, 1.871]
-    std = [-9.172, 1.922]
-
-    # load generator
-    dataset_dir = "data/v4/dataset_reinforce"
-"""
-Q_kH
-"""
-
-
-@ex.named_config
-def v0_scratch():
-    exp_name = "v0_scratch"
-    test_only = True
-
-    # reward
-    reward_max = [-50.]
-
-    # predictor
-    mean = [-19.408]
-    std = [-9.172]
-
-
-@ex.named_config
-def v0_qkh():
-    """
-    omit mc in the input
-    """
-    exp_name = "v0_qkh"
-    max_epochs = 20
-
-    # reward
-    reward_max = [-50.]
-
-    # reinforce
-    early_stop = 0.5  # early_stop when the accuracy of scaffold is less than it.
-    ratio_exploit = .6  # ratio for exploitation
-    ratio_mask_mc = .5  # ratio for masking mc of input_src
-
-    # predictor
-    mean = [-19.408]
-    std = [-9.172]
-
-@ex.named_config
-def v0_qkh_round2():
-    """
-    omit mc in the input
-    """
-    exp_name = "v0_qkh_round2"
-    max_epochs = 20
-
-    # reward
-    reward_max = [-50.]
-
-    # reinforce
-    early_stop = 0.5  # early_stop when the accuracy of scaffold is less than it.
-    ratio_exploit = .6  # ratio for exploitation
-    ratio_mask_mc = .5  # ratio for masking mc of input_src
-
-    # predictor
-    predictor_load_path = ["predictor/logs/regression_qkh_round2_seed0_from_/version_0/checkpoints/best.ckpt"]
-    mean = [-19.886]
-    std = [9.811]
-
-
-"""
-Selectivity (v1)
-"""
-
-
-@ex.named_config
-def v1_scratch():
-    exp_name = "v1_scratch"
-    test_only = True
-
-    # reward
-    reward_max = [10.]
-
-    # predictor
-    predictor_load_path = ["predictor/logs/regression_selectivity_seed0_from_/version_0/checkpoints/best.ckpt"]
-    mean = [1.871]
-    std = [1.922]
-
-
-@ex.named_config
-def v1_selectivity():
-    """
-    omit mc in the input
-    """
-    exp_name = "v1_selectivity"
-    max_epochs = 20
-
-    # reward
-    reward_max = [10.]
-
-    # reinforce
-    early_stop = 0.5  # early_stop when the accuracy of scaffold is less than it.
-    ratio_exploit = .6  # ratio for exploitation
-    ratio_mask_mc = .5  # ratio for masking mc of input_src
-
-    # predictor
-    predictor_load_path = ["predictor/logs/regression_selectivity_seed0_from_/version_0/checkpoints/best.ckpt"]
-    mean = [1.871]
-    std = [1.922]
 
 
 """

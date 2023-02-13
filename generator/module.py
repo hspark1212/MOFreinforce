@@ -3,7 +3,7 @@ import random
 from tqdm import tqdm
 
 import numpy as np
-import selfies as sf
+import libs.selfies as sf
 from rdkit import Chem
 
 import torch

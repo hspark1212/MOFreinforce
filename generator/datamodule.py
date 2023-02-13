@@ -66,7 +66,7 @@ class GeneratorDatamodule(LightningDataModule):
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
                           collate_fn=self.collate,
-                          shuffle=True, ###
+                          shuffle=True, ##
                           pin_memory=True)
 
     def val_dataloader(self):
@@ -74,7 +74,7 @@ class GeneratorDatamodule(LightningDataModule):
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
                           collate_fn=self.collate,
-                          shuffle=False, ###
+                          shuffle=False, ##
                           pin_memory=True)
 
     def test_dataloader(self):
@@ -82,7 +82,7 @@ class GeneratorDatamodule(LightningDataModule):
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
                           collate_fn=self.collate,
-                          shuffle=False, ###
+                          shuffle=False, ##
                           pin_memory=True)
 
 

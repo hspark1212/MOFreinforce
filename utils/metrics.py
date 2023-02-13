@@ -3,12 +3,12 @@ import torch
 from rdkit import Chem
 from rdkit import RDLogger
 
-import selfies as sf
+import libs.selfies as sf
 
 RDLogger.DisableLog('rdApp.*')
 
-topo_to_cn = json.load(open("assets/final_topo_cn.json"))
-mc_to_cn = json.load(open("assets/mc_cn.json"))
+topo_to_cn = json.load(open("data/final_topo_cn.json"))
+mc_to_cn = json.load(open("data/mc_cn.json"))
 
 
 class Metrics():
