@@ -16,13 +16,13 @@ extras_require = {
     'docs': ['sphinx', 'livereload', 'myst-parser']
 }
 
-with open('mofreinforce/__init__.py') as f:
-    version = re.search(r"__version__ = '(?P<version>.+)'", f.read()).group('version')
+# with open('mofreinforce/__init__.py') as f:
+#     version = re.search(r"__version__ = '(?P<version>.+)'", f.read()).group('version')
 
 
 setup(
     name='mofreinforce',
-    version=version,
+    version="0.0.1",
     description='mofreinforce',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -33,7 +33,6 @@ setup(
     install_requires=install_requires,
     extras_require=extras_require,
     scripts=[],
-    url='https://hspark1212.github.io/MOFreinforce/',
     download_url='https://github.com/hspark1212/MOFreinforce',
     entry_points={'console_scripts':['mofreinforce=mofreinforce.cli.main:main']},
     python_requires='>=3.8',

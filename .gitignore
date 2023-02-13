@@ -36,3 +36,10 @@ _data/
 assets/
 results/
 test/
+
+# setuptools
+build/
+dist/
+.eggs/
+*.egg-info
+*.eggs

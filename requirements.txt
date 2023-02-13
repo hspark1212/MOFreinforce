@@ -9,3 +9,4 @@ timm>=0.5.4
 transformers>=4.20.1
 SmilesPE>=0.0.3
 rdkit
+wget
