@@ -66,7 +66,7 @@ To perform reinforcement learning with CO2/H2O selectivity, run the following co
 $ python mofreinforce/run_reinforce.py with v1_selectivity
 ```
 
-You can experiment with other parameters by modifying the [`mofreinforce/reinforce/config_freinforce.py`](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/reinforce/config_reinforce.py) file.
+You can experiment with other parameters by modifying the [`mofreinforce/reinforce/config_reinforce.py`](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/reinforce/config_reinforce.py) file.
 
 you can train the reinforcement learning with your own pre-trained predictor to generate high-performing MOFs with your defined reward function.
 
