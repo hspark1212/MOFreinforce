@@ -27,7 +27,7 @@ $ pip install -e .
 
 ## Getting Started
 
-### [download pre-trained models]()
+### [download pre-trained models](https://figshare.com/articles/dataset/default_tar_gz_for_MOFreinforce/22085948)
 
 In order to train the reinforcement learning framework, the `predictor` (environment) and `generator` (agent) should be pre-trained.
 So, we provide the pre-trained generator and predictors for DAC.
@@ -37,7 +37,7 @@ $ mofreinforce download default
 ```
 Then, you can find the pre-trained generator and predictors in the `mofreinforce/model` directory.
 
-### [Predictor](https://github.com/hspark1212/MOFreinforce/blob/master/README.md)
+### [Predictor](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/predictor)
 <p align="left">
   <img src="https://user-images.githubusercontent.com/64190846/218362135-275e50d4-5a1b-4c5d-b8f3-3434193a3de9.jpg" width="500")
 </p>
@@ -46,7 +46,7 @@ Once you download the pre-trained models, you can find the pre-trained predictor
 
 If you want to train the predictor for your own desired property, please refer to [predictor.md](https://github.com/hspark1212/MOFreinforce/blob/master/predictor.md).
 
-### [Generator](https://github.com/hspark1212/MOFreinforce/blob/master/README.md)
+### [Generator](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/generator)
 <p align="left">
   <img src="https://user-images.githubusercontent.com/64190846/218362193-5540b285-d622-4698-8be9-f2bd789da264.jpg" width="800")
 </p>
@@ -55,7 +55,7 @@ We provide a generator which selects a topology and a metal cluster, which are c
 The generator was pre-trained with about 650,000 MOFs created by PORMAKE, which allows for generating feasible MOFs.
 You can find the pre-trained generator at `model/generator.ckpt`.
 
-### [Reinforcement Learning](https://github.com/hspark1212/MOFreinforce/blob/master/README.md)
+### [Reinforcement Learning](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/reinforce)
 To perform reinforcement learning with CO2 heat of adsorption, run the following command:
 ```angular2html
 $ python mofreinforce/run_reinforce.py with v0_qkh
