@@ -1,6 +1,6 @@
 # Reinforcement Learning Framework For MOFs
 ![scheme_rl-01](https://user-images.githubusercontent.com/64190846/218362539-740997c9-d198-4e0a-89e0-3277c5b45a51.jpg)
-This package is a reinforcement learning framework for MOFs. 
+This package is a reinforcement learning framework for MOFs with user-desired properties. 
 The framework consists of `agent` and `environment` which are a generator and a predictor, respectively.
 The agent takes an action (which is generating a MOF structure). 
 This action is then evaluated in the environment by the predictor, which predicts the value of the property we are interested in. 
@@ -12,16 +12,15 @@ Based on the prediction, a reward is returned in form of an update to the agent 
 
 Linux : Ubuntu 20.04, 22.04
 
-For optimal performance, we recommend running with GPUs
+This package requires Linux Ubuntu 20.04 or 22.04. For optimal performance, we recommend running it with GPUs.
 
 ### Dependencies
-```angular2html
-python>=3.8
-```
+This package requires Python 3.8 or higher.
+
 
 ### Install
-Please install pytorch (>= 1.12.0) according to your environments before installation of requirements.
-```angular2html
+To install this package, please install PyTorch (version 1.12.0 or higher) according to your environment, and then follow these steps:
+```
 $ git clone https://github.com/hspark1212/MOFreinforce.git
 $ pip install -e .
 ```
@@ -36,18 +35,18 @@ So, we provide the pre-trained generator and predictors for DAC.
 ```angular2html
 $ mofreinforce download default
 ```
-Then, you can find the pre-trained generator and predictors in `mofreinforce/model`.
+Then, you can find the pre-trained generator and predictors in the `mofreinforce/model` directory.
 
-### [Predictor]()
+### [Predictor](https://github.com/hspark1212/MOFreinforce/blob/master/README.md)
 <p align="left">
   <img src="https://user-images.githubusercontent.com/64190846/218362135-275e50d4-5a1b-4c5d-b8f3-3434193a3de9.jpg" width="500")
 </p>
 
 Once you download the pre-trained models, you can find the pre-trained predictors `model/preditor_qkh.ckpt` and `model/predictor_selectivity.ckpt` for CO2 heat of adsorption and CO2/H2O selectivity, respectively.
 
-If you want to train the predictor for your own desired property, please refer to [predictor.md]().
+If you want to train the predictor for your own desired property, please refer to [predictor.md](https://github.com/hspark1212/MOFreinforce/blob/master/predictor.md).
 
-### [Generator]()
+### [Generator](https://github.com/hspark1212/MOFreinforce/blob/master/README.md)
 <p align="left">
   <img src="https://user-images.githubusercontent.com/64190846/218362193-5540b285-d622-4698-8be9-f2bd789da264.jpg" width="800")
 </p>
@@ -56,16 +55,25 @@ We provide a generator which selects a topology and a metal cluster, which are c
 The generator was pre-trained with about 650,000 MOFs created by PORMAKE, which allows for generating feasible MOFs.
 You can find the pre-trained generator at `model/generator.ckpt`.
 
-### [Reinforcement Learning]()
-
-(1) reinforcement learning with CO2 heat of adsorption
+### [Reinforcement Learning](https://github.com/hspark1212/MOFreinforce/blob/master/README.md)
+To perform reinforcement learning with CO2 heat of adsorption, run the following command:
 ```angular2html
 $ python mofreinforce/run_reinforce.py with v0_qkh
 ```
 
-(2) reinforcement learning with CO2/H2O selectivity
+To perform reinforcement learning with CO2/H2O selectivity, run the following command:
 ```angular2html
 $ python mofreinforce/run_reinforce.py with v1_selectivity
 ```
 
-if you want to experiment with other parameters by modifying [`mofreinforce/reinforce/config_freinforce.py`](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/reinforce/config_reinforce.py) 
+You can experiment with other parameters by modifying the [`mofreinforce/reinforce/config_freinforce.py`](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/reinforce/config_reinforce.py) file.
+
+you can train the reinforcement learning with your own pre-trained predictor to generate high-performing MOFs with your defined reward function.
+
+## Contributing
+
+Contributions are welcome! If you have any suggestions or find any issues, please open an issue or a pull request.
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for more information.

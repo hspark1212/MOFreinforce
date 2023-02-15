@@ -5,6 +5,7 @@ __pycache__/
 *.ipynb
 *.sh
 *.npz
+*.tar.gz
 
 .ipynb_checkpoints/
 
