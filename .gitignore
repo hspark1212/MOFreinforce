@@ -28,7 +28,7 @@ reinforce/logs*/
 reinforce/old_logs/
 
 # library
-libs/
+libs/PORMAKE/
 
 # big file size
 model/
