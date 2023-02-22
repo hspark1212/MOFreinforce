@@ -22,6 +22,7 @@ mc_to_cn = json.load(open("data/mc_cn.json"))
 class Reinforce(LightningModule):
     def __init__(self, agent, predictors, config):
         super(Reinforce, self).__init__()
+        # self.save_hyperparameters()
 
         self.agent = copy.deepcopy(agent)
         # freeze only encoder
@@ -204,8 +205,8 @@ class Reinforce(LightningModule):
             for i, prob in enumerate(out["list_prob"][2:][::-1]):
                 rl_loss -= torch.log(prob) * discounted_reward
                 discounted_reward = discounted_reward * self.decay_ol
-
                 tmp_loss.append(-torch.log(prob).item() * discounted_reward)
+
             print(rewards, preds, out["topo"], out["mc"], out["gen_sm"], out["gen_sf"], src[0, 1].item())
             print(rl_loss, tmp_loss[:2], sum(tmp_loss[2:]))
 
