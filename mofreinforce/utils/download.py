@@ -53,7 +53,7 @@ def download_default(direc=None, remove_tarfile=False):
         else:
             raise ValueError(f'direc must be path for directory, not {direc}')
 
-    link = 'https://figshare.com/ndownloader/files/39246500'
+    link = 'https://figshare.com/ndownloader/files/39472138'
     name = 'basic data and pretrained models'
     _download_file(link, direc, name)
 
