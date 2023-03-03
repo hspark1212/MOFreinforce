@@ -27,7 +27,7 @@ generator/logs/
 reinforce/logs*/
 reinforce/old_logs/
 
-# library
+# lib
 libs/
 
 # big file size

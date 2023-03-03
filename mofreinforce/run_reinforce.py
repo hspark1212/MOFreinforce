@@ -19,6 +19,7 @@ from reinforce.module import Reinforce
 
 @ex.automain
 def main(_config):
+    pl.seed_everything(_config["seed"])
     # 1. load predictor
     predictors = []
     for i in range(len(_config["predictor_load_path"])):

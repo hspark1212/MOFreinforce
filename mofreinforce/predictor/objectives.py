@@ -1,5 +1,9 @@
+import torch
 import torch.nn.functional as F
 from torchmetrics.functional import r2_score
+
+def weighted_mse_loss(logits, target, weight):
+    return (weight * (logits - target) ** 2).mean()
 
 
 def compute_regression(pl_module, batch, normalizer):
@@ -12,7 +16,14 @@ def compute_regression(pl_module, batch, normalizer):
     # normalize encode if config["mean"] and config["std], else pass
     target = normalizer.encode(target)
 
-    loss = F.mse_loss(logits, target)
+    # weight mse
+    weight_loss = pl_module.hparams.config["weight_loss"]
+    if weight_loss is not None:
+        weight = torch.where(abs(batch["target"]) > abs(weight_loss), 1.0, 1.0 / 100.)
+        loss = weighted_mse_loss(logits, target, weight)
+    else:
+        loss = F.mse_loss(logits, target)
+
     ret = {
         "regression_loss": loss,
         "regression_logits": normalizer.decode(logits),

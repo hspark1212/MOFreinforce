@@ -27,6 +27,7 @@ def config():
     vocab_dim = len(vocab_to_idx)
     mc_dim = len(mc_to_idx)
     topo_dim = len(topo_to_idx)
+    weight_loss = None
 
     # transformer setting
     hid_dim = 256
@@ -98,6 +99,22 @@ def regression_qkh():
     # normalize (when regression)
     mean = -19.408
     std = -9.172
+
+
+@ex.named_config
+def regression_qkh_weightloss():
+    exp_name = "regression_qkh_weightloss"
+    dataset_dir = "data/dataset_predictor/qkh"
+
+    # trainer
+    max_epochs = 50
+    batch_size = 64
+    per_gpu_batchsize = 16
+
+    # normalize (when regression)
+    mean = -19.408
+    std = -9.172
+    weight_loss = -30.
 
 
 @ex.named_config
