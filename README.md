@@ -51,12 +51,12 @@ The pre-trained generator `model/generator.ckpt` can be found at the `model` dir
 ### [Reinforcement Learning](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/reinforce)
 To implement reinforcement learning with CO2 heat of adsorption, run the following command:
 ```angular2html
-$ python mofreinforce/run_reinforce.py with v0_qkh
+$ python run_reinforce.py with v0_qkh
 ```
 
 To implement reinforcement learning with CO2/H2O selectivity, run the following command:
 ```angular2html
-$ python mofreinforce/run_reinforce.py with v1_selectivity
+$ python run_reinforce.py with v1_selectivity
 ```
 
 You can experiment with other parameters by modifying the [`mofreinforce/reinforce/config_reinforce.py`](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/reinforce/config_reinforce.py) file.
