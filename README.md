@@ -22,7 +22,7 @@ $ pip install -e .
 
 ## Getting Started
 
-### [download pre-trained models](https://figshare.com/articles/dataset/default_tar_gz_for_MOFreinforce/22085948)
+### [download pre-trained models](https://figshare.com/ndownloader/files/39472138)
 
 To train the reinforcement learning framework, the predictor (environment) and generator (agent) should be pre-trained. 
 We provide pre-trained generators and predictors for DAC, which you can download by running the following command:
