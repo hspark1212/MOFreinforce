@@ -26,9 +26,10 @@ generator/logs/
 # reinforce
 reinforce/logs*/
 reinforce/old_logs/
+reinforce/logs_official/*
 
 # lib
-libs/PORMAKE/
+PORMAKE/
 
 # big file size
 model/

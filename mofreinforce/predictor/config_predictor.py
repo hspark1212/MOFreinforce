@@ -133,7 +133,7 @@ def regression_selectivity():
 
 
 """
-Round 2
+v0_qkh more round
 """
 @ex.named_config
 def regression_qkh_round2():
@@ -147,4 +147,20 @@ def regression_qkh_round2():
 
     # normalize (when regression)
     mean = -19.886
-    std = 9.811
+    std = -9.811
+
+
+@ex.named_config
+def regression_qkh_round3():
+    exp_name = "regression_qkh_round3"
+    dataset_dir = "data/dataset_predictor/qkh/round3/"
+
+    # trainer
+    max_epochs = 50
+    batch_size = 64
+    per_gpu_batchsize = 16
+
+    # normalize (when regression)
+    mean = -20.331
+    std = -10.383
+

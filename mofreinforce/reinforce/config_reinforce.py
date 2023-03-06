@@ -106,6 +106,73 @@ def v0_qkh():
     std = [-9.172]
 
 
+@ex.named_config
+def v0_qkh_ex_05():
+    """
+    omit mc in the input
+    """
+    exp_name = "v0_qkh_ex_05"
+    max_epochs = 20
+
+    # reward
+    reward_max = [-50.]
+
+    # reinforce
+    early_stop = 0.5  # early_stop when the accuracy of scaffold is less than it.
+    ratio_exploit = .5  # ratio for exploitation
+    ratio_mask_mc = .5  # ratio for masking mc of input_src
+
+    # predictor
+    predictor_load_path = ["model/predictor_qkh.ckpt"]
+    mean = [-19.408]
+    std = [-9.172]
+
+
+@ex.named_config
+def v0_qkh_round3():
+    """
+    omit mc in the input
+    """
+    exp_name = "v0_qkh_round3"
+    max_epochs = 20
+
+    # reward
+    reward_max = [-50.]
+
+    # reinforce
+    early_stop = 0.5  # early_stop when the accuracy of scaffold is less than it.
+    ratio_exploit = .6  # ratio for exploitation
+    ratio_mask_mc = .5  # ratio for masking mc of input_src
+
+    # predictor
+    predictor_load_path = ["predictor/logs/regression_qkh_round3_seed0_from_/version_0/checkpoints/best.ckpt"]
+    mean = [ -20.331]
+    std = [-10.383]
+
+
+@ex.named_config
+def v0_qkh_threshold_30():
+    """
+    omit mc in the input
+    """
+    exp_name = "v0_qkh_threshold_30"
+    max_epochs = 20
+
+    # reward
+    threshold = True
+    reward_max = [-30.]
+
+    # reinforce
+    early_stop = 0.5  # early_stop when the accuracy of scaffold is less than it.
+    ratio_exploit = .6  # ratio for exploitation
+    ratio_mask_mc = .5  # ratio for masking mc of input_src
+
+    # predictor
+    predictor_load_path = ["model/predictor_qkh.ckpt"]
+    mean = [-19.408]
+    std = [-9.172]
+
+
 """
 Selectivity (v1)
 """
