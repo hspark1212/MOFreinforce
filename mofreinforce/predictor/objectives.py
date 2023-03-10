@@ -16,19 +16,14 @@ def compute_regression(pl_module, batch, normalizer):
     # normalize encode if config["mean"] and config["std], else pass
     target = normalizer.encode(target)
 
-    # weight mse
-    weight_loss = pl_module.hparams.config["weight_loss"]
-    if weight_loss is not None:
-        weight = torch.where(abs(batch["target"]) > abs(weight_loss), 1.0, 1.0 / 100.)
-        loss = weighted_mse_loss(logits, target, weight)
-    else:
-        loss = F.mse_loss(logits, target)
+    loss = F.mse_loss(logits, target)
 
     ret = {
         "regression_loss": loss,
         "regression_logits": normalizer.decode(logits),
         "regression_labels": normalizer.decode(target),
     }
+    ret.update(infer)
 
     # call update() loss and acc
     phase = "train" if pl_module.training else "val"

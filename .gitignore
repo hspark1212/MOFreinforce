@@ -26,7 +26,6 @@ generator/logs/
 # reinforce
 reinforce/logs*/
 reinforce/old_logs/
-reinforce/logs_official/*
 
 # lib
 PORMAKE/
@@ -39,6 +38,7 @@ assets/
 results/
 test/
 logs/
+logs_official/
 
 # setuptools
 build/
