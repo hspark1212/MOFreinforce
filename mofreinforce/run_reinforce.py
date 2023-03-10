@@ -60,7 +60,6 @@ def main(_config):
     )
 
     logger = pl.loggers.TensorBoardLogger(
-
         _config["log_dir"],
         name=f'{exp_name}_seed{_config["seed"]}_from_{_config["load_path"].split("/")[-1][:-5]}',
     )
@@ -89,7 +88,7 @@ def main(_config):
 
     if not _config["test_only"]:
         trainer.fit(model, datamodule=dm)
-        trainer.test(model, datamodule=dm)
+        # trainer.test(model, datamodule=dm)
     else:
         trainer.test(model, datamodule=dm)
 

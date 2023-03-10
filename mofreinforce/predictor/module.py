@@ -103,6 +103,9 @@ class Predictor(LightningModule):
         cls_feats = self.pooler(x)
 
         ret = {
+            "topo_name": batch["topo_name"],
+            "mc_name": batch["mc_name"],
+            "ol_name": batch["ol_name"],
             "cls_feats": cls_feats,
             "mc": mc,
             "topo": topo,
@@ -144,6 +147,7 @@ class Predictor(LightningModule):
     def test_step(self, batch, batch_idx):
         module_utils.set_task(self)
         output = self(batch)
+        output = {k: (v.cpu() if torch.is_tensor(v) else v) for k, v in output.items()}  # update cpu for memory
         return output
 
     def test_epoch_end(self, outputs):
@@ -159,5 +163,19 @@ class Predictor(LightningModule):
             r2 = r2_score(torch.FloatTensor(logits), torch.FloatTensor(labels))
             self.log(f"test/r2_score", r2)
 
+        """
+        # example for saving cls_feats
+        import json
+        d = {}
+        for out in outputs:
+            mc_name = out["mc_name"]
+            ol_name = out["ol_name"]
+            topo_name = out["topo_name"]
+            cls_feats = out["cls_feats"]
+            for mc, ol, topos, cls_feat in zip(mc_name, ol_name, topo_name, cls_feats):
+                cif_id = "_".join([str(topos), str(mc), str(ol)])
+                d.update({cif_id : cls_feat.tolist()})
+        json.dump(d, open("cls_feats.json", "w"))
+        """
     def configure_optimizers(self):
         return module_utils.set_schedule(self)

@@ -1,4 +1,5 @@
 import os
+import json
 from functools import partial
 
 import torch
@@ -45,6 +46,10 @@ class Reinforce(object):
         hid_dim (int): dimension of hidden for metal culster and topology
         """
         super(Reinforce, self).__init__()
+        # save config
+        if config is not None:
+            json.dump(config, open(f"{self.logger.save_dir}/{self.logger.name}/hparams.json", "w"))
+
         self.generator = generator
         self.rmsd_predictor = rmsd_predictor
         self.target_predictor = target_predictor
