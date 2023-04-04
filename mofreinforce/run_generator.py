@@ -38,7 +38,7 @@ def main(_config):
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
     callbacks = [checkpoint_callback, lr_callback]
 
-    num_devices = _config["num_devices"]
+    num_devices = _config["devices"]
     if isinstance(num_devices, list):
         num_devices = len(num_devices)
 

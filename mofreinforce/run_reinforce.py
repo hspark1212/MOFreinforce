@@ -52,7 +52,7 @@ def main(_config):
     exp_name = f"{_config['exp_name']}"
     os.makedirs(_config["log_dir"], exist_ok=True)
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        save_top_k=1,
+        save_top_k=-1,
         verbose=True,
         monitor="val/total_reward",
         mode="max",

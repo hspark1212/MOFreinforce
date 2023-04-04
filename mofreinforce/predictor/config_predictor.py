@@ -7,12 +7,14 @@ mc_to_idx = json.load(open("data/mc_to_idx.json"))
 topo_to_idx = json.load(open("data/topo_to_idx.json"))
 vocab_to_idx = json.load(open("data/vocab_to_idx.json"))  # vocab for selfies
 
+
 def _loss_names(d):
     ret = {
         "regression": 0,  # regression
     }
     ret.update(d)
     return ret
+
 
 @ex.config
 def config():
@@ -23,7 +25,7 @@ def config():
     loss_names = _loss_names({"regression": 1})
 
     # model setting
-    max_len = 128 # cls + mc + topo + ol_len
+    max_len = 128  # cls + mc + topo + ol_len
     vocab_dim = len(vocab_to_idx)
     mc_dim = len(mc_to_idx)
     topo_dim = len(topo_to_idx)
@@ -43,7 +45,7 @@ def config():
     log_dir = "predictor/logs"
     num_workers = 8  # recommend num_gpus * 4
     num_nodes = 1
-    num_gpus = 2
+    devices = 2
     precision = 16
 
     # downstream
@@ -71,9 +73,11 @@ def config():
     mean = None
     std = None
 
+
 @ex.named_config
 def env_ifactor():
     pass
+
 
 @ex.named_config
 def regression_vf():
@@ -87,9 +91,9 @@ def regression_vf():
 
 
 @ex.named_config
-def regression_qkh():
-    exp_name = "regression_qkh"
-    dataset_dir = "data/dataset_predictor/qkh"
+def regression_qkh_old_round1():
+    exp_name = "regression_qkh_old_round1"
+    dataset_dir = "data/dataset_predictor/qkh/old_round1"
 
     # trainer
     max_epochs = 50
@@ -102,43 +106,9 @@ def regression_qkh():
 
 
 @ex.named_config
-def regression_qkh_weightloss():
-    exp_name = "regression_qkh_weightloss"
-    dataset_dir = "data/dataset_predictor/qkh"
-
-    # trainer
-    max_epochs = 50
-    batch_size = 64
-    per_gpu_batchsize = 16
-
-    # normalize (when regression)
-    mean = -19.408
-    std = -9.172
-    weight_loss = -30.
-
-
-@ex.named_config
-def regression_selectivity():
-    exp_name = "regression_selectivity"
-    dataset_dir = "data/dataset_predictor/selectivity"
-
-    # trainer
-    max_epochs = 50
-    batch_size = 128
-    per_gpu_batchsize = 16
-
-    # normalize (when regression)
-    mean = 1.872
-    std = 1.922
-
-
-"""
-v0_qkh more round
-"""
-@ex.named_config
-def regression_qkh_round2():
-    exp_name = "regression_qkh_round2"
-    dataset_dir = "data/dataset_predictor/qkh/round2/"
+def regression_qkh_old_round2():
+    exp_name = "regression_qkh_old_round2"
+    dataset_dir = "data/dataset_predictor/qkh/old_round2"
 
     # trainer
     max_epochs = 50
@@ -151,9 +121,9 @@ def regression_qkh_round2():
 
 
 @ex.named_config
-def regression_qkh_round3():
-    exp_name = "regression_qkh_round3"
-    dataset_dir = "data/dataset_predictor/qkh/round3/"
+def regression_qkh_new_round1():
+    exp_name = "regression_qkh_new_round1"
+    dataset_dir = "data/dataset_predictor/qkh/new_round1"
 
     # trainer
     max_epochs = 50
@@ -164,3 +134,67 @@ def regression_qkh_round3():
     mean = -20.331
     std = -10.383
 
+
+@ex.named_config
+def regression_qkh_new_round2():
+    exp_name = "regression_qkh_new_round2"
+    dataset_dir = "data/dataset_predictor/qkh/new_round2"
+
+    # trainer
+    max_epochs = 50
+    batch_size = 64
+    per_gpu_batchsize = 2
+
+    # normalize (when regression)
+    mean = -21.068
+    std = 10.950
+
+
+@ex.named_config
+def regression_qkh_new_round3():
+    exp_name = "regression_qkh_new_round3"
+    dataset_dir = "data/dataset_predictor/qkh/new_round3"
+
+    # trainer
+    max_epochs = 50
+    batch_size = 64
+    per_gpu_batchsize = 2
+
+    # normalize (when regression)
+    mean = -21.810
+    std = 11.452
+
+
+"""
+v1_selectivity
+"""
+
+
+@ex.named_config
+def regression_selectivity_new_round1():
+    exp_name = "regression_selectivity_new_round1"
+    dataset_dir = "data/dataset_predictor/selectivity/new_round1"
+
+    # trainer
+    max_epochs = 50
+    batch_size = 128
+    per_gpu_batchsize = 16
+
+    # normalize (when regression)
+    mean = 1.872
+    std = 1.922
+
+
+@ex.named_config
+def regression_selectivity_new_round2():
+    exp_name = "regression_selectivity_new_round2"
+    dataset_dir = "data/dataset_predictor/selectivity/new_round2"
+
+    # trainer
+    max_epochs = 50
+    batch_size = 128
+    per_gpu_batchsize = 16
+
+    # normalize (when regression)
+    mean = 2.361
+    std = 3.407
