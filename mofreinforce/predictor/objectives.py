@@ -30,6 +30,7 @@ def compute_regression(pl_module, batch, normalizer):
     loss = getattr(pl_module, f"{phase}_regression_loss")(ret["regression_loss"])
     mae = getattr(pl_module, f"{phase}_regression_mae")(
         F.l1_loss(ret["regression_logits"], ret["regression_labels"])
+
     )
 
     r2 = getattr(pl_module, f"{phase}_regression_r2")(

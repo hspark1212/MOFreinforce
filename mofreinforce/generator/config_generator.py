@@ -37,7 +37,7 @@ def config():
     # Trainer
     per_gpu_batchsize = 128
     num_nodes = 1
-    num_devices = 2
+    devices = 2
     precision = 16
     resume_from = None
     val_check_interval = 1.0

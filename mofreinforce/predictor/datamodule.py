@@ -52,6 +52,7 @@ class Datamodule(LightningDataModule):
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
                           collate_fn=self.collate,
+                          drop_last=True,
                           pin_memory=True)
 
     def val_dataloader(self):
@@ -59,6 +60,7 @@ class Datamodule(LightningDataModule):
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
                           collate_fn=self.collate,
+                          drop_last=True,
                           pin_memory=True)
 
     def test_dataloader(self):
@@ -66,4 +68,5 @@ class Datamodule(LightningDataModule):
                           batch_size=self.batch_size,
                           num_workers=self.num_workers,
                           collate_fn=self.collate,
+                          drop_last=True,
                           pin_memory=True)

@@ -103,9 +103,9 @@ class Predictor(LightningModule):
         cls_feats = self.pooler(x)
 
         ret = {
-            "topo_name": batch["topo_name"],
-            "mc_name": batch["mc_name"],
-            "ol_name": batch["ol_name"],
+            "topo_name": batch.get("topo_name", None),
+            "mc_name": batch.get("mc_name", None),
+            "ol_name": batch.get("ol_name", None),
             "cls_feats": cls_feats,
             "mc": mc,
             "topo": topo,
