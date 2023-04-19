@@ -10,3 +10,9 @@ transformers>=4.20.1
 SmilesPE>=0.0.3
 rdkit
 wget
+# for tutorial.ipynb
+pandas
+jupyterlab
+matplotlib
+seaborn
+ase
