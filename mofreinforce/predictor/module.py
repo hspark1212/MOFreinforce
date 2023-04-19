@@ -32,7 +32,9 @@ class Predictor(LightningModule):
         self.topo_embedding.apply(module_utils.init_weights)
 
         # organic linker embedding
-        self.ol_embedding = nn.Embedding(config["vocab_dim"], config["hid_dim"], padding_idx=0)
+        self.ol_embedding = nn.Embedding(
+            config["vocab_dim"], config["hid_dim"], padding_idx=0
+        )
         self.ol_embedding.apply(module_utils.init_weights)
 
         # class token
@@ -41,7 +43,9 @@ class Predictor(LightningModule):
 
         # position embedding
         # max_len = ol_max_len (100) + cls + mc + topo
-        self.pos_embeddings = nn.Parameter(torch.zeros(1, config["max_len"], config["hid_dim"]))
+        self.pos_embeddings = nn.Parameter(
+            torch.zeros(1, config["max_len"], config["hid_dim"])
+        )
         # self.pos_embeddings.apply(module_utils.init_weights)
 
         # pooler
@@ -85,9 +89,11 @@ class Predictor(LightningModule):
 
         # total_embedding and mask
         co_embeds = torch.cat(
-            [cls_embeds, mc_embeds, topo_embeds, ol_embeds],
-            dim=1)  # [B, max_len, hid_dim]
-        co_masks = torch.cat([torch.ones([batch_size, 3]).to(ol), (ol != 0).float()], dim=1)
+            [cls_embeds, mc_embeds, topo_embeds, ol_embeds], dim=1
+        )  # [B, max_len, hid_dim]
+        co_masks = torch.cat(
+            [torch.ones([batch_size, 3]).to(ol), (ol != 0).float()], dim=1
+        )
 
         # add pos_embeddings
         final_embeds = co_embeds + self.pos_embeddings
@@ -147,7 +153,9 @@ class Predictor(LightningModule):
     def test_step(self, batch, batch_idx):
         module_utils.set_task(self)
         output = self(batch)
-        output = {k: (v.cpu() if torch.is_tensor(v) else v) for k, v in output.items()}  # update cpu for memory
+        output = {
+            k: (v.cpu() if torch.is_tensor(v) else v) for k, v in output.items()
+        }  # update cpu for memory
         return output
 
     def test_epoch_end(self, outputs):
@@ -177,5 +185,6 @@ class Predictor(LightningModule):
                 d.update({cif_id : cls_feat.tolist()})
         json.dump(d, open("cls_feats.json", "w"))
         """
+
     def configure_optimizers(self):
         return module_utils.set_schedule(self)

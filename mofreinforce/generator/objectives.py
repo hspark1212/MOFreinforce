@@ -45,11 +45,53 @@ def compute_loss(pl_module, batch):
         accuracy(logit_ol.argmax(-1), label_ol, ignore_index=0)
     )
 
-    pl_module.log(f"{loss_name}/{phase}/total_loss", total_loss, batch_size=batch_size, prog_bar=True, sync_dist=True)
-    pl_module.log(f"{loss_name}/{phase}/loss_topo", loss_topo, batch_size=batch_size, prog_bar=False, sync_dist=True)
-    pl_module.log(f"{loss_name}/{phase}/loss_mc", loss_mc, batch_size=batch_size, prog_bar=False, sync_dist=True)
-    pl_module.log(f"{loss_name}/{phase}/loss_ol", loss_ol, batch_size=batch_size, prog_bar=False, sync_dist=True)
-    pl_module.log(f"{loss_name}/{phase}/acc_topo", acc_topo, batch_size=batch_size, prog_bar=True, sync_dist=True)
-    pl_module.log(f"{loss_name}/{phase}/acc_mc", acc_mc, batch_size=batch_size, prog_bar=True, sync_dist=True)
-    pl_module.log(f"{loss_name}/{phase}/acc_ol", acc_ol, batch_size=batch_size, prog_bar=True, sync_dist=True)
+    pl_module.log(
+        f"{loss_name}/{phase}/total_loss",
+        total_loss,
+        batch_size=batch_size,
+        prog_bar=True,
+        sync_dist=True,
+    )
+    pl_module.log(
+        f"{loss_name}/{phase}/loss_topo",
+        loss_topo,
+        batch_size=batch_size,
+        prog_bar=False,
+        sync_dist=True,
+    )
+    pl_module.log(
+        f"{loss_name}/{phase}/loss_mc",
+        loss_mc,
+        batch_size=batch_size,
+        prog_bar=False,
+        sync_dist=True,
+    )
+    pl_module.log(
+        f"{loss_name}/{phase}/loss_ol",
+        loss_ol,
+        batch_size=batch_size,
+        prog_bar=False,
+        sync_dist=True,
+    )
+    pl_module.log(
+        f"{loss_name}/{phase}/acc_topo",
+        acc_topo,
+        batch_size=batch_size,
+        prog_bar=True,
+        sync_dist=True,
+    )
+    pl_module.log(
+        f"{loss_name}/{phase}/acc_mc",
+        acc_mc,
+        batch_size=batch_size,
+        prog_bar=True,
+        sync_dist=True,
+    )
+    pl_module.log(
+        f"{loss_name}/{phase}/acc_ol",
+        acc_ol,
+        batch_size=batch_size,
+        prog_bar=True,
+        sync_dist=True,
+    )
     return ret

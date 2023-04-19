@@ -5,26 +5,30 @@ from argparse import RawTextHelpFormatter
 from mofreinforce import __version__
 
 commands = [
-    ('download', 'mofreinforce.cli.download'),
+    ("download", "mofreinforce.cli.download"),
 ]
 
 
-def main(prog='mofreinforce', version=__version__, commands=commands, args=None):
-    parser = argparse.ArgumentParser(prog=prog, )
-    parser.add_argument('--version', action='version',
-                        version= '%(prog)s-{}'.format(version))
-    parser.add_argument('-T', '--traceback', action='store_true')
-    subparsers = parser.add_subparsers(title='Sub-command', dest='command')
+def main(prog="mofreinforce", version=__version__, commands=commands, args=None):
+    parser = argparse.ArgumentParser(
+        prog=prog,
+    )
+    parser.add_argument(
+        "--version", action="version", version="%(prog)s-{}".format(version)
+    )
+    parser.add_argument("-T", "--traceback", action="store_true")
+    subparsers = parser.add_subparsers(title="Sub-command", dest="command")
 
-    subparser = subparsers.add_parser('help',
-                                      description='Help',
-                                      help='Help for sub-command.')
+    subparser = subparsers.add_parser(
+        "help", description="Help", help="Help for sub-command."
+    )
 
-    subparser.add_argument('helpcommand',
-                           nargs='?',
-                           metavar='sub-command',
-                           help='Provide help for sub-command.')
-
+    subparser.add_argument(
+        "helpcommand",
+        nargs="?",
+        metavar="sub-command",
+        help="Provide help for sub-command.",
+    )
 
     functions = {}
     parsers = {}
@@ -34,32 +38,30 @@ def main(prog='mofreinforce', version=__version__, commands=commands, args=None)
         if docstring is None:
             # Backwards compatibility with GPAW
             short = cmd.short_description
-            long = getattr(cmd, 'description', short)
+            long = getattr(cmd, "description", short)
         else:
-            parts = docstring.split('\n', 1)
+            parts = docstring.split("\n", 1)
             if len(parts) == 1:
                 short = docstring
                 long = docstring
             else:
                 short, body = parts
                 long = short
-                #long = short + '\n' + textwrap.dedent(body)
+                # long = short + '\n' + textwrap.dedent(body)
         subparser = subparsers.add_parser(
-            command,
-            formatter_class=RawTextHelpFormatter,
-            help=short,
-            description=long)
+            command, formatter_class=RawTextHelpFormatter, help=short, description=long
+        )
         cmd.add_arguments(subparser)
         functions[command] = cmd.run
         parsers[command] = subparser
 
-    #if hook:
+    # if hook:
     #    args = hook(parser, args)
     #    args = hook(parser, args)
-    #else:
+    # else:
     args = parser.parse_args(args)
 
-    if args.command == 'help':
+    if args.command == "help":
         if args.helpcommand is None:
             parser.print_help()
         else:
@@ -79,7 +81,8 @@ def main(prog='mofreinforce', version=__version__, commands=commands, args=None)
             if args.traceback:
                 raise
             else:
-                l1 = '{}: {}\n'.format(x.__class__.__name__, x)
-                l2 = ('To get a full traceback, use: {} -T {} ...'
-                      .format(prog, args.command))
+                l1 = "{}: {}\n".format(x.__class__.__name__, x)
+                l2 = "To get a full traceback, use: {} -T {} ...".format(
+                    prog, args.command
+                )
                 parser.error(l1 + l2)

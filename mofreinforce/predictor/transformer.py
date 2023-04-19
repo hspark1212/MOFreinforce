@@ -4,14 +4,15 @@ import torch
 import torch.nn as nn
 from timm.models.layers import DropPath, trunc_normal_
 
+
 class Mlp(nn.Module):
     def __init__(
-            self,
-            in_features,
-            hidden_features=None,
-            out_features=None,
-            act_layer=nn.GELU,
-            drop=0.0,
+        self,
+        in_features,
+        hidden_features=None,
+        out_features=None,
+        act_layer=nn.GELU,
+        drop=0.0,
     ):
         super().__init__()
         out_features = out_features or in_features
@@ -32,19 +33,19 @@ class Mlp(nn.Module):
 
 class Attention(nn.Module):
     def __init__(
-            self,
-            dim,
-            num_heads=8,
-            qkv_bias=False,
-            qk_scale=None,
-            attn_drop=0.0,
-            proj_drop=0.0,
+        self,
+        dim,
+        num_heads=8,
+        qkv_bias=False,
+        qk_scale=None,
+        attn_drop=0.0,
+        proj_drop=0.0,
     ):
         super().__init__()
         self.num_heads = num_heads
         head_dim = dim // num_heads
         # NOTE scale factor was wrong in my original version, can set manually to be compat with prev weights
-        self.scale = qk_scale or head_dim ** -0.5
+        self.scale = qk_scale or head_dim**-0.5
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.attn_drop = nn.Dropout(attn_drop)
@@ -56,8 +57,10 @@ class Attention(nn.Module):
         assert C % self.num_heads == 0
         qkv = (
             self.qkv(x)  # [B, N, 3*C]
-                .reshape(B, N, 3, self.num_heads, C // self.num_heads)  # [B, N, 3, num_heads, C//num_heads]
-                .permute(2, 0, 3, 1, 4)  # [3, B, num_heads, N, C//num_heads]
+            .reshape(
+                B, N, 3, self.num_heads, C // self.num_heads
+            )  # [B, N, 3, num_heads, C//num_heads]
+            .permute(2, 0, 3, 1, 4)  # [3, B, num_heads, N, C//num_heads]
         )
         q, k, v = (
             qkv[0],  # [B, num_heads, N, C//num_heads]
@@ -72,7 +75,9 @@ class Attention(nn.Module):
         attn = attn.softmax(dim=-1)  # [B, num_heads, N, N]
         attn = self.attn_drop(attn)
 
-        x = (attn @ v).transpose(1, 2).reshape(B, N, C)  # [B, num_heads, N, C//num_heads] -> [B, N, C]
+        x = (
+            (attn @ v).transpose(1, 2).reshape(B, N, C)
+        )  # [B, num_heads, N, C//num_heads] -> [B, N, C]
         x = self.proj(x)
         x = self.proj_drop(x)
         return x, attn
@@ -80,17 +85,17 @@ class Attention(nn.Module):
 
 class Block(nn.Module):
     def __init__(
-            self,
-            dim,
-            num_heads,
-            mlp_ratio=4.0,
-            qkv_bias=False,
-            qk_scale=None,
-            drop=0.0,
-            attn_drop=0.0,
-            drop_path=0.0,
-            act_layer=nn.GELU,
-            norm_layer=nn.LayerNorm,
+        self,
+        dim,
+        num_heads,
+        mlp_ratio=4.0,
+        qkv_bias=False,
+        qk_scale=None,
+        drop=0.0,
+        attn_drop=0.0,
+        drop_path=0.0,
+        act_layer=nn.GELU,
+        norm_layer=nn.LayerNorm,
     ):
         super().__init__()
         self.norm1 = norm_layer(dim)
@@ -121,20 +126,22 @@ class Block(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(self, embed_dim,
-                 depth=12,
-                 num_heads=12,
-                 mlp_ratio=4.0,
-                 qkv_bias=True,
-                 qk_scale=None,
-                 drop_rate=0.0,
-                 attn_drop_rate=0.0,
-                 drop_path_rate=0.0,
-                 norm_layer=None,
-                 add_norm_before_transformer=False,
-                 config=None):
+    def __init__(
+        self,
+        embed_dim,
+        depth=12,
+        num_heads=12,
+        mlp_ratio=4.0,
+        qkv_bias=True,
+        qk_scale=None,
+        drop_rate=0.0,
+        attn_drop_rate=0.0,
+        drop_path_rate=0.0,
+        norm_layer=None,
+        add_norm_before_transformer=False,
+        config=None,
+    ):
         super().__init__()
-
 
         norm_layer = norm_layer or partial(nn.LayerNorm, eps=1e-6)
         self.add_norm_before_transformer = add_norm_before_transformer
@@ -175,6 +182,3 @@ class Transformer(nn.Module):
         elif isinstance(m, nn.LayerNorm):
             nn.init.constant_(m.bias, 0)
             nn.init.constant_(m.weight, 1.0)
-
-
-

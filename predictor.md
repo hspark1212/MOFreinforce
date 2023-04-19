@@ -30,9 +30,9 @@ Finally, the target property you want to optimize should be defined.
 
 ## 2. Training predictor
 
-Here is an example to train predictor for heat of adsorption.
+Here is an example to train predictor for heat of adsorption in the `mofreinforce` directory
 ```angular2html
-# python mofreinforce/run_predictor.py with regression_qkh
+# python run_predictor.py with regression_qkh_round3
 ```
 By modifying `predictor/config_predictor.py`, you can train your predictors.
 
