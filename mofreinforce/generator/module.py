@@ -36,7 +36,6 @@ class Generator(LightningModule):
         self.vocab_to_idx = json.load(open(path_vocab))
         self.idx_to_vocab = {v: k for k, v in self.vocab_to_idx.items()}
 
-
         self.transformer = Transformer(
             input_dim=len(self.vocab_to_idx),
             output_dim=len(self.vocab_to_idx),
@@ -70,11 +69,13 @@ class Generator(LightningModule):
         # get mask
         out = self.transformer(src, tgt_input)  # [B, seq_len-1, vocab_dim]
 
-        out.update({
-            "src": src,
-            "tgt": batch["encoded_output"],
-            "tgt_label": tgt_label,
-        })
+        out.update(
+            {
+                "src": src,
+                "tgt": batch["encoded_output"],
+                "tgt_label": tgt_label,
+            }
+        )
 
         return out
 
@@ -92,9 +93,13 @@ class Generator(LightningModule):
         trg_indexes = [vocab_to_idx["[SOS]"]]
         for i in range(max_len):
             trg_tensor = torch.LongTensor(trg_indexes).unsqueeze(0).to(src.device)
-            trg_mask = self.transformer.make_trg_mask(trg_tensor)  # [B=1, 1, seq_len, seq_len]
+            trg_mask = self.transformer.make_trg_mask(
+                trg_tensor
+            )  # [B=1, 1, seq_len, seq_len]
 
-            output = self.transformer.decoder(trg_tensor, enc_src, trg_mask, src_mask)  # [B=1, seq_len, vocab_dim]
+            output = self.transformer.decoder(
+                trg_tensor, enc_src, trg_mask, src_mask
+            )  # [B=1, seq_len, vocab_dim]
 
             if "output_ol" in output.keys():
                 out = output["output_ol"]
@@ -126,19 +131,19 @@ class Generator(LightningModule):
             gen_sf = "".join(ol_tokens[:-1])  # remove EOS token
             gen_sm = sf.decoder(gen_sf)
             m = Chem.MolFromSmiles(gen_sm)
-            gen_sm = Chem.MolToSmiles(m) # canonical smiles
+            gen_sm = Chem.MolToSmiles(m)  # canonical smiles
         except Exception as e:
             print(e)
             pass
 
         ret = {
-            "topo" : topo,
-            "mc" : mc,
-            "topo_idx" : topo_idx,
-            "mc_idx" : mc_idx,
-            "ol_idx" : ol_idx,
-            "gen_sf" : gen_sf,
-            "gen_sm" : gen_sm,
+            "topo": topo,
+            "mc": mc,
+            "topo_idx": topo_idx,
+            "mc_idx": mc_idx,
+            "ol_idx": ol_idx,
+            "gen_sf": gen_sf,
+            "gen_sm": gen_sm,
         }
         return ret
 
@@ -186,10 +191,11 @@ class Generator(LightningModule):
 
         self.log(f"{split}/conn_match", metrics.get_mean(metrics.conn_match))
         self.log(f"{split}/unique_ol", len(set(metrics.gen_ol)))
-        self.log(f"{split}/unique_topo_mc", len(set(zip(metrics.gen_topo, metrics.gen_mc))))
+        self.log(
+            f"{split}/unique_topo_mc", len(set(zip(metrics.gen_topo, metrics.gen_mc)))
+        )
         self.log(f"{split}/scaffold", metrics.get_mean(metrics.scaffold))
         self.log(f"{split}/num_fail", metrics.get_mean(metrics.num_fail))
-
 
         # add image to log
         # gen_ol with frags (32 images)
@@ -207,7 +213,9 @@ class Generator(LightningModule):
                 img = torch.tensor(img)
                 imgs.append(img)
             imgs = np.stack(imgs, axis=0)
-            self.logger.experiment.add_image(f"{split}/{i}", imgs, self.global_step, dataformats="NHWC")
+            self.logger.experiment.add_image(
+                f"{split}/{i}", imgs, self.global_step, dataformats="NHWC"
+            )
 
         # total gen_ol
         imgs = []
@@ -221,7 +229,9 @@ class Generator(LightningModule):
             except Exception as e:
                 print(e)
         imgs = np.stack(imgs, axis=0)
-        self.logger.experiment.add_image(f"{split}/gen_ol/", imgs, self.global_step, dataformats="NHWC")
+        self.logger.experiment.add_image(
+            f"{split}/gen_ol/", imgs, self.global_step, dataformats="NHWC"
+        )
 
     def configure_optimizers(self):
         return module_utils.set_schedule(self)

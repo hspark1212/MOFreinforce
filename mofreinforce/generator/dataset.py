@@ -9,13 +9,9 @@ from torch.utils.data import Dataset
 
 
 class GeneratorDataset(Dataset):
-    def __init__(self,
-                 dataset_dir,
-                 path_vocab,
-                 path_topo_to_idx,
-                 path_mc_to_idx,
-                 split,
-                 max_len):
+    def __init__(
+        self, dataset_dir, path_vocab, path_topo_to_idx, path_mc_to_idx, split, max_len
+    ):
         assert split in ["train", "test", "val"]
         # read vocab_to_idx
         self.vocab_to_idx = json.load(open(path_vocab))
@@ -34,34 +30,36 @@ class GeneratorDataset(Dataset):
 
         self.encoded_input, self.encoded_output = self.encoding(max_len)
 
-
     def encoding(self, max_len):
         # making encoded_input
         encoded_input = []
         for i, f in enumerate(self.frags):
             encoded_frags = [self.vocab_to_idx[v] for v in sf.split_selfies(f)]
-            encoded = [self.mc_to_idx[self.mc[i]]] + \
-                      [self.num_conn[i]] + \
-                      [self.vocab_to_idx["[SOS]"]] + \
-                      encoded_frags + \
-                      [self.vocab_to_idx["[EOS]"]] + \
-                      [self.vocab_to_idx["[PAD]"]] * (max_len - 4 - len(encoded_frags))
+            encoded = (
+                [self.mc_to_idx[self.mc[i]]]
+                + [self.num_conn[i]]
+                + [self.vocab_to_idx["[SOS]"]]
+                + encoded_frags
+                + [self.vocab_to_idx["[EOS]"]]
+                + [self.vocab_to_idx["[PAD]"]] * (max_len - 4 - len(encoded_frags))
+            )
             encoded_input.append(encoded)
 
         # making encoded_output
         encoded_output = []
         for i, f in enumerate(self.selfies):
             encoded_selfies = [self.vocab_to_idx[v] for v in sf.split_selfies(f)]
-            encoded = [self.vocab_to_idx["[SOS]"]] + \
-                      [self.topo_to_idx[self.topo[i]]] + \
-                      [self.mc_to_idx[self.mc[i]]] + \
-                      encoded_selfies + \
-                      [self.vocab_to_idx["[EOS]"]] + \
-                      [self.vocab_to_idx["[PAD]"]] * (max_len - 4 - len(encoded_selfies))
+            encoded = (
+                [self.vocab_to_idx["[SOS]"]]
+                + [self.topo_to_idx[self.topo[i]]]
+                + [self.mc_to_idx[self.mc[i]]]
+                + encoded_selfies
+                + [self.vocab_to_idx["[EOS]"]]
+                + [self.vocab_to_idx["[PAD]"]] * (max_len - 4 - len(encoded_selfies))
+            )
             encoded_output.append(encoded)
 
         return encoded_input, encoded_output
-
 
     def __len__(self):
         return len(self.selfies)
@@ -71,12 +69,12 @@ class GeneratorDataset(Dataset):
 
         ret.update(
             {
-                "topo" : self.topo[idx],
-                "mc" : self.mc[idx],
-                "frags" : self.frags[idx],
-                "selfies" : self.selfies[idx],
-                "encoded_input" : self.encoded_input[idx],
-                "encoded_output" : self.encoded_output[idx],
+                "topo": self.topo[idx],
+                "mc": self.mc[idx],
+                "frags": self.frags[idx],
+                "selfies": self.selfies[idx],
+                "encoded_input": self.encoded_input[idx],
+                "encoded_output": self.encoded_output[idx],
             }
         )
         return ret
@@ -88,4 +86,3 @@ class GeneratorDataset(Dataset):
         dict_batch["encoded_input"] = torch.LongTensor(dict_batch["encoded_input"])
         dict_batch["encoded_output"] = torch.LongTensor(dict_batch["encoded_output"])
         return dict_batch
-

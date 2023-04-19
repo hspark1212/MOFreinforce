@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 from torchmetrics.functional import r2_score
 
+
 def weighted_mse_loss(logits, target, weight):
     return (weight * (logits - target) ** 2).mean()
 
@@ -30,14 +31,13 @@ def compute_regression(pl_module, batch, normalizer):
     loss = getattr(pl_module, f"{phase}_regression_loss")(ret["regression_loss"])
     mae = getattr(pl_module, f"{phase}_regression_mae")(
         F.l1_loss(ret["regression_logits"], ret["regression_labels"])
-
     )
 
-    r2 = getattr(pl_module, f"{phase}_regression_r2")(
-        r2_score(logits, target)
-    )
+    r2 = getattr(pl_module, f"{phase}_regression_r2")(r2_score(logits, target))
 
-    pl_module.log(f"regression/{phase}/loss", loss, batch_size=batch_size, prog_bar=True)
+    pl_module.log(
+        f"regression/{phase}/loss", loss, batch_size=batch_size, prog_bar=True
+    )
     pl_module.log(f"regression/{phase}/mae", mae, batch_size=batch_size, prog_bar=True)
     pl_module.log(f"regression/{phase}/r2", r2, batch_size=batch_size, prog_bar=True)
     return ret
