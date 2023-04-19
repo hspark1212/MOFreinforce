@@ -6,7 +6,7 @@ The framework consists of two key components: the agent and the environment. The
 
 ## Installation - Get started in minutes! 🌟
 
-### OS and hardware requirements 🖥️
+### 🖥️OS and hardware requirements 
 This package requires Linux Ubuntu 20.04 or 22.04. For optimal performance, we recommend running it with GPUs.
 
 ### 📦Dependencies 
@@ -21,16 +21,16 @@ $ cd MOFreinforce
 $ pip install -e .
 ```
 
-## 💥Getting Started 
+## Getting Started 💥
 
-### [download pre-trained models](https://figshare.com/ndownloader/files/39472138)
+### 📁[download pre-trained models](https://figshare.com/ndownloader/files/39472138)
 
 To train the reinforcement learning framework, you'll need to use pre-trained predictors for DAC and pre-trained generator. You can download by running the following command in the `MOFreinforce/mofreinforce` directory:
 
 ```angular2html
 $ mofreinforce download default
 ```
-Once downloaded, you can find the pre-trained generator and predictor models in the `mofreinforce/model` directory. 📁
+Once downloaded, you can find the pre-trained generator and predictor models in the `mofreinforce/model` directory. 
 
 ### 🔮[Predictor](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/predictor)
 <p align="left">
@@ -69,10 +69,10 @@ The optimized generators for CO2 heat of adsorption and CO2/H2O selectivity can 
 The generated MOFs obtained from the test set (10,000 data) will be constructed by the [PORMAKE](https://github.com/Sangwon91/PORMAKE).
 The details are summarized in [`tutorial.ipynb`](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/tutorial.ipynb) file.
 
-## 🙌Contributing
+## Contributing 🙌
 
 Contributions are welcome! If you have any suggestions or find any issues, please open an issue or a pull request.
 
-## 📄License
+## License 📄
 
 This project is licensed under the MIT License. See the `LICENSE` file for more information.
