@@ -1,6 +1,6 @@
 # Reinforcement Learning Framework For MOFs 🚀
 ![scheme_rl-01](https://user-images.githubusercontent.com/64190846/218362539-740997c9-d198-4e0a-89e0-3277c5b45a51.jpg)
-TThis repository is a reinforcement learning framework for Metal-Organic Frameworks (MOFs), designed to generate MOF structures with user-defined properties. 🔍
+This repository is a reinforcement learning framework for Metal-Organic Frameworks (MOFs), designed to generate MOF structures with user-defined properties. 🔍
 
 The framework consists of two key components: the agent and the environment. The agent (i.e., generator) generates MOF structures by taking actions, which are then evaluated by the environment (i.e., predictor) to predict the properties of the generated MOFs. Based on the prediction, a reward is returned to the agent, which is then used to generate the next round of MOFs, continually improving the generation process. 
 
