@@ -14,6 +14,9 @@ class Predictor(LightningModule):
     def __init__(self, config):
         super().__init__()
         self.save_hyperparameters()
+        # visualize attention score
+        self.visualize_attention = config["visualize_attention"]
+
         # build transformer
         self.transformer = Transformer(
             embed_dim=config["hid_dim"],
@@ -100,9 +103,13 @@ class Predictor(LightningModule):
         final_embeds = self.transformer.pos_drop(final_embeds)
 
         # transformer blocks
+        attn_weights = []
         x = final_embeds
         for i, blk in enumerate(self.transformer.blocks):
             x, _attn = blk(x, mask=co_masks)
+
+            if self.visualize_attention:
+                attn_weights.append(_attn)
 
         x = self.transformer.norm(x)
 
@@ -118,6 +125,7 @@ class Predictor(LightningModule):
             "ol": ol,
             "output": x,
             "output_mask": co_masks,
+            "attn_weights": attn_weights,
         }
         return ret
 

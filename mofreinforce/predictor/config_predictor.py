@@ -75,6 +75,9 @@ def config():
     mean = None
     std = None
 
+    # visualize attention score
+    visualize_attention = False
+
 
 @ex.named_config
 def env_ifactor():
