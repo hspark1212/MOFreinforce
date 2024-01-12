@@ -1,5 +1,6 @@
 __pycache__/
 
+*.txt
 *.out
 *.log
 *.ipynb
@@ -25,8 +26,7 @@ generator/logs/
 
 # reinforce
 reinforce/logs*/
-reinforce/old_logs/
-reinforce/logs_official/*
+reinforce/old_logs*/
 
 # lib
 PORMAKE/
@@ -34,11 +34,14 @@ PORMAKE/
 # big file size
 model/
 data/
+raw_data/
 _data/
 assets/
 results/
 test/
 logs/
+logs_official/
+tmp/
 
 # setuptools
 build/
