@@ -1,13 +1,12 @@
 pytorch-lightning==1.7.7
-torchmetrics==0.9.0
-sacred>=0.8.2
-numpy>=1.22.4
-sklearn>=0.0
-scikit-learn>=1.1.1
-tqdm>=4.64.0
-timm>=0.5.4
-transformers>=4.20.1
-SmilesPE>=0.0.3
+torchmetrics
+sacred
+numpy
+scikit-learn
+tqdm
+timm
+transformers
+SmilesPE
 rdkit
 wget
 # for tutorial.ipynb
