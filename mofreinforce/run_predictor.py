@@ -38,7 +38,7 @@ def main(_config):
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval="step")
     callbacks = [checkpoint_callback, lr_callback]
 
-    num_gpus = _config["num_gpus"]
+    num_gpus = _config["devices"]
     if isinstance(num_gpus, list):
         num_gpus = len(num_gpus)
 

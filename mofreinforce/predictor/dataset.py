@@ -5,10 +5,11 @@ from torch.utils.data import Dataset
 
 
 class MOFDataset(Dataset):
-    def __init__(self,
-                 dataset_dir,
-                 split,
-                 ):
+    def __init__(
+        self,
+        dataset_dir,
+        split,
+    ):
         assert split in ["train", "test", "val"]
 
         # load dict_mof
@@ -16,7 +17,6 @@ class MOFDataset(Dataset):
         print(f"read file : {path_dict_mof}")
         self.dict_mof = json.load(open(path_dict_mof, "r"))
         self.mof_name = list(self.dict_mof.keys())
-
 
     def __len__(self):
         return len(self.mof_name)
@@ -35,7 +35,6 @@ class MOFDataset(Dataset):
 
     @staticmethod
     def collate(batch, max_len):
-
         keys = set([key for b in batch for key in b.keys()])
         dict_batch = {k: [dic[k] if k in dic else None for dic in batch] for k in keys}
         # target
@@ -45,8 +44,11 @@ class MOFDataset(Dataset):
         # topo (idx)
         dict_batch["topo"] = torch.LongTensor(dict_batch["topo"])
         # ol (selfies)
-        ol_len = max_len - 3 # cls, mc, topo
+        ol_len = max_len - 3  # cls, mc, topo
         dict_batch["ol"] = torch.LongTensor(
-            [ol + [0] * (ol_len - len(ol)) if len(ol) < ol_len else ol[:ol_len] for ol in dict_batch["ol"]]
+            [
+                ol + [0] * (ol_len - len(ol)) if len(ol) < ol_len else ol[:ol_len]
+                for ol in dict_batch["ol"]
+            ]
         )
         return dict_batch

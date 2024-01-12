@@ -82,9 +82,50 @@ def env_ifactor():
 
 
 @ex.named_config
-def regression_qkh_round1():
-    exp_name = "regression_qkh_round1"
-    dataset_dir = "data/dataset_predictor/qkh/round1"
+def regression_vf():
+    exp_name = "regression_vf"
+    dataset_dir = "data/dataset_predictor/vf"
+
+    # trainer
+    max_epochs = 50
+    batch_size = 128
+    per_gpu_batchsize = 16
+
+
+@ex.named_config
+def regression_qkh_old_round1():
+    exp_name = "regression_qkh_old_round1"
+    dataset_dir = "data/dataset_predictor/qkh/old_round1"
+
+    # trainer
+    max_epochs = 50
+    batch_size = 64
+    per_gpu_batchsize = 16
+
+    # normalize (when regression)
+    mean = -19.408
+    std = -9.172
+
+
+@ex.named_config
+def regression_qkh_old_round2():
+    exp_name = "regression_qkh_old_round2"
+    dataset_dir = "data/dataset_predictor/qkh/old_round2"
+
+    # trainer
+    max_epochs = 50
+    batch_size = 64
+    per_gpu_batchsize = 16
+
+    # normalize (when regression)
+    mean = -19.886
+    std = -9.811
+
+
+@ex.named_config
+def regression_qkh_new_round1():
+    exp_name = "regression_qkh_new_round1"
+    dataset_dir = "data/dataset_predictor/qkh/new_round1"
 
     # trainer
     max_epochs = 50
@@ -97,9 +138,9 @@ def regression_qkh_round1():
 
 
 @ex.named_config
-def regression_qkh_round2():
-    exp_name = "regression_qkh_round2"
-    dataset_dir = "data/dataset_predictor/qkh/round2"
+def regression_qkh_new_round2():
+    exp_name = "regression_qkh_new_round2"
+    dataset_dir = "data/dataset_predictor/qkh/new_round2"
 
     # trainer
     max_epochs = 50
@@ -112,9 +153,9 @@ def regression_qkh_round2():
 
 
 @ex.named_config
-def regression_qkh_round3():
-    exp_name = "regression_qkh_round3"
-    dataset_dir = "data/dataset_predictor/qkh/round3"
+def regression_qkh_new_round3():
+    exp_name = "regression_qkh_new_round3"
+    dataset_dir = "data/dataset_predictor/qkh/new_round3"
 
     # trainer
     max_epochs = 50
@@ -132,9 +173,9 @@ v1_selectivity
 
 
 @ex.named_config
-def regression_selectivity_round1():
-    exp_name = "regression_selectivity_round1"
-    dataset_dir = "data/dataset_predictor/selectivity/round1"
+def regression_selectivity_new_round1():
+    exp_name = "regression_selectivity_new_round1"
+    dataset_dir = "data/dataset_predictor/selectivity/new_round1"
 
     # trainer
     max_epochs = 50
@@ -147,9 +188,9 @@ def regression_selectivity_round1():
 
 
 @ex.named_config
-def regression_selectivity_round2():
-    exp_name = "regression_selectivity_round2"
-    dataset_dir = "data/dataset_predictor/selectivity/round2"
+def regression_selectivity_new_round2():
+    exp_name = "regression_selectivity_new_round2"
+    dataset_dir = "data/dataset_predictor/selectivity/new_round2"
 
     # trainer
     max_epochs = 50
@@ -162,9 +203,9 @@ def regression_selectivity_round2():
 
 
 @ex.named_config
-def regression_selectivity_round3():
-    exp_name = "regression_selectivity_round3"
-    dataset_dir = "data/dataset_predictor/selectivity/round3"
+def regression_selectivity_new_round3():
+    exp_name = "regression_selectivity_new_round3"
+    dataset_dir = "data/dataset_predictor/selectivity/new_round3"
 
     # trainer
     max_epochs = 50

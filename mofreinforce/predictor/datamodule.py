@@ -48,22 +48,31 @@ class Datamodule(LightningDataModule):
         self.collate = partial(self.dataset_cls.collate, max_len=self.max_len)
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset,
-                          batch_size=self.batch_size,
-                          num_workers=self.num_workers,
-                          collate_fn=self.collate,
-                          pin_memory=True)
+        return DataLoader(
+            self.train_dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            collate_fn=self.collate,
+            drop_last=True,
+            pin_memory=True,
+        )
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset,
-                          batch_size=self.batch_size,
-                          num_workers=self.num_workers,
-                          collate_fn=self.collate,
-                          pin_memory=True)
+        return DataLoader(
+            self.val_dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            collate_fn=self.collate,
+            drop_last=True,
+            pin_memory=True,
+        )
 
     def test_dataloader(self):
-        return DataLoader(self.test_dataset,
-                          batch_size=self.batch_size,
-                          num_workers=self.num_workers,
-                          collate_fn=self.collate,
-                          pin_memory=True)
+        return DataLoader(
+            self.test_dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            collate_fn=self.collate,
+            drop_last=True,
+            pin_memory=True,
+        )
