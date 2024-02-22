@@ -64,9 +64,9 @@ To test the reinforcement learning, run in the `mofreinforce` directory:
 ```angular2html
 $ python run_reinforce.py with v0_qkh_round3 log_dir=test test_only=True load_path=model/reinforce/best_v0_qkh_round3.ckpt
 ```
-The optimized generators for CO2 heat of adsorption and CO2/H2O selectivity can be found in the `mofreinforce/model` directory. The generated MOFs obtained from the test set (10,000 data) will be constructed by PORMAKE. The details are summarized in the tutorial.ipynb file.
+The optimized generators for CO2 heat of adsorption and CO2/H2O selectivity can be found in the `mofreinforce/model` directory. 
 
-The generated MOFs obtained from the test set (10,000 data) will be constructed by the [PORMAKE](https://github.com/Sangwon91/PORMAKE).
+The generated MOFs obtained from the test set (10,000 data) can be constructed by the [PORMAKE](https://github.com/Sangwon91/PORMAKE).
 The details are summarized in [`tutorial.ipynb`](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/tutorial.ipynb) file.
 
 ## Contributing 🙌
