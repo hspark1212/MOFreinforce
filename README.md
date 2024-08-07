@@ -30,7 +30,7 @@ To train the reinforcement learning framework, you'll need to use pre-trained pr
 ```angular2html
 $ mofreinforce download default
 ```
-Once downloaded, you can find the pre-trained generator and predictor models in the `mofreinforce/model` directory. 
+Once downloaded, you can find the pre-trained generator and predictor models in the `mofreinforce/model` directory, and the data files in the `mofreinforce/data` directory. 
 
 ### [Predictor](https://github.com/hspark1212/MOFreinforce/blob/master/mofreinforce/predictor)
 <p align="left">
